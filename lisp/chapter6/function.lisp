@@ -1,0 +1,2 @@
+(fboundp '+)
+(symbol-function '+)

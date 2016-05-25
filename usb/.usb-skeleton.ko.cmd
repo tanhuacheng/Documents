@@ -1,0 +1,1 @@
+cmd_/home/thc-xubuntu/Documents/usb/usb-skeleton.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/thc-xubuntu/Documents/usb/usb-skeleton.ko /home/thc-xubuntu/Documents/usb/usb-skeleton.o /home/thc-xubuntu/Documents/usb/usb-skeleton.mod.o

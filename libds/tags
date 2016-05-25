@@ -1,0 +1,29 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BOOL	include/types.h	37;"	d
+DS_LIST_H_	include/ds_list.h	12;"	d
+FALSE	include/types.h	43;"	d
+TRUE	include/types.h	40;"	d
+TYPES_H_	include/types.h	21;"	d
+VPATH	Makefile	/^VPATH = .\/src : .\/include$/;"	m
+data	src/ds_list.c	/^    void* data;$/;"	m	struct:ds_list_node	file:
+data_length	src/ds_list.c	/^    int data_length;$/;"	m	struct:ds_list	file:
+ds_list	src/ds_list.c	/^struct ds_list {$/;"	s	file:
+ds_list_create	src/ds_list.c	/^struct ds_list* ds_list_create (const int data_length)$/;"	f
+ds_list_node	src/ds_list.c	/^struct ds_list_node {$/;"	s	file:
+fp32_t	include/types.h	/^typedef float               fp32_t;                         \/* 单精度 32位 浮点型 变量 *\/$/;"	t
+fp64_t	include/types.h	/^typedef double              fp64_t;                         \/* 双精度 64位 浮点型 变量 *\/$/;"	t
+head	src/ds_list.c	/^    struct ds_list_node* head;$/;"	m	struct:ds_list	typeref:struct:ds_list::ds_list_node	file:
+indx	src/ds_list.c	/^    struct ds_list_node* indx;$/;"	m	struct:ds_list	typeref:struct:ds_list::ds_list_node	file:
+int16_t	include/types.h	/^typedef signed   short      int16_t;                        \/* 有符号 16位 整  型 变量 *\/$/;"	t
+int32_t	include/types.h	/^typedef signed   int        int32_t;                        \/* 有符号 32位 整  型 变量 *\/$/;"	t
+int8_t	include/types.h	/^typedef signed   char       int8_t;                         \/* 有符号  8位 整  型 变量 *\/$/;"	t
+next	src/ds_list.c	/^    struct ds_list_node *next;$/;"	m	struct:ds_list_node	typeref:struct:ds_list_node::ds_list_node	file:
+tail	src/ds_list.c	/^    struct ds_list_node* tail;$/;"	m	struct:ds_list	typeref:struct:ds_list::ds_list_node	file:
+uint16_t	include/types.h	/^typedef unsigned short      uint16_t;                       \/* 无符号 16位 整  型 变量 *\/$/;"	t
+uint32_t	include/types.h	/^typedef unsigned int        uint32_t;                       \/* 无符号 32位 整  型 变量 *\/$/;"	t
+uint8_t	include/types.h	/^typedef unsigned char       uint8_t;                        \/* 无符号  8位 整  型 变量 *\/$/;"	t

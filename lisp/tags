@@ -1,0 +1,58 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+<-	deduction.lisp	/^(defmacro <- (con &optional ant)$/;"	f
+area	area.lisp	/^(defgeneric area x)$/;"	f
+area	area.lisp	/^(defmethod area ((x circle))$/;"	f
+area	area.lisp	/^(defmethod area ((x rectangle))$/;"	f
+area	area.lisp	/^(defun area (x)$/;"	f
+binding	deduction.lisp	/^(defun binding (x binds)$/;"	f
+change-vars	deduction.lisp	/^(defun change-vars (r)$/;"	f
+circle	area.lisp	/^(defclass circle ()$/;"	f
+circle	area.lisp	/^(defstruct circle$/;"	f
+circle	class-and-instance.lisp	/^(defclass circle ()$/;"	f
+circle1	area.lisp	/^(defclass circle1 ()$/;"	f
+combine	class-and-instance.lisp	/^(defmethod combine ((ic ice-cream) (top topping))$/;"	f
+combine	class-and-instance.lisp	/^(defmethod combine ((ic ice-cream) x)$/;"	f
+combine	class-and-instance.lisp	/^(defmethod combine ((x number) (y number))$/;"	f
+combine	class-and-instance.lisp	/^(defmethod combine (x y)$/;"	f
+compr	compress.lisp	/^(defun compr (elt n lst)$/;"	f
+compress	compress.lisp	/^(defun compress (x)$/;"	f
+graphic	class-and-instance.lisp	/^(defclass graphic ()$/;"	f
+ice-cream	class-and-instance.lisp	/^(defclass ice-cream (stuff)$/;"	f
+intellectual	class-and-instance.lisp	/^(defclass intellectual (speaker) ())$/;"	f
+len	ansicl.lisp	/^(defun len (lst)$/;"	f
+list-of	compress.lisp	/^(defun list-of (n elt)$/;"	f
+match	deduction.lisp	/^(defun match (x y &optional binds)$/;"	f
+n-elts	compress.lisp	/^(defun n-elts (elt n)$/;"	f
+our-copy-tree	ansicl.lisp	/^(defun our-copy-tree (tr)$/;"	f
+our-length	ansicl.lisp	/^(defun our-length (lst)$/;"	f
+our-member	ansicl.lisp	/^(defun our-member (obj lst)$/;"	f
+our-subst	ansicl.lisp	/^(defun our-subst (new old tree)$/;"	f
+point	area.lisp	/^(defclass point ()$/;"	f
+prove	deduction.lisp	/^(defun prove (expr &optional binds)$/;"	f
+prove-and	deduction.lisp	/^(defun prove-and (clauses binds)$/;"	f
+prove-eql	deduction.lisp	/^(defun prove-eql (clauses binds)$/;"	f
+prove-not	deduction.lisp	/^(defun prove-not (clauses binds)$/;"	f
+prove-or	deduction.lisp	/^(defun prove-or (clauses binds)$/;"	f
+prove-simple	deduction.lisp	/^(defun prove-simple (pred args binds)$/;"	f
+rectangle	area.lisp	/^(defclass rectangle ()$/;"	f
+rectangle	area.lisp	/^(defstruct rectangle$/;"	f
+screen-circle	class-and-instance.lisp	/^(defclass screen-circle (circle graphic)$/;"	f
+show-squares	ansicl.lisp	/^(defun show-squares (start end)$/;"	f
+show-squares-rec	ansicl.lisp	/^(defun show-squares-rec (start end)$/;"	f
+speak	class-and-instance.lisp	/^(defmethod speak ((s speaker) string)$/;"	f
+speak	class-and-instance.lisp	/^(defmethod speak :after ((i intellectual) string)$/;"	f
+speak	class-and-instance.lisp	/^(defmethod speak :around ((i intellectual) string)$/;"	f
+speak	class-and-instance.lisp	/^(defmethod speak :before ((i intellectual) string)$/;"	f
+speak	class-and-instance.lisp	/^(defmethod speak :before ((s speaker) string)$/;"	f
+speaker	class-and-instance.lisp	/^(defclass speaker () ())$/;"	f
+stuff	class-and-instance.lisp	/^(defclass stuff ()$/;"	f
+topping	class-and-instance.lisp	/^(defclass topping (stuff)$/;"	f
+uncompress	compress.lisp	/^(defun uncompress (lst)$/;"	f
+var?	deduction.lisp	/^(defun var? (x)$/;"	f
+vars-in	deduction.lisp	/^(defun vars-in (expr)$/;"	f
+with-answer	deduction.lisp	/^(defmacro with-answer (query &body body)$/;"	f

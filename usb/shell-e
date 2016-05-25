@@ -1,0 +1,9 @@
+rm *.ko
+make -C /lib/modules/$(uname -r)/build/ M=$(pwd) modules
+rm *.symvers
+rm *.order
+rm *.mod.*
+rm *.o
+mv ./sinosims-usb.ko ./a.ko
+modinfo a.ko
+
