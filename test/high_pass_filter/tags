@@ -1,0 +1,98 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ConfigureHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::ConfigureHandle(void* \/*handle*\/) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* ) const
+ConfigureHandle	high_pass_filter_impl.h	/^  virtual int ConfigureHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+CreateHandle	high_pass_filter_impl.cc	/^void* HighPassFilterImpl::CreateHandle() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+CreateHandle	high_pass_filter_impl.h	/^  virtual void* CreateHandle() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:() const
+DestroyHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::DestroyHandle(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+DestroyHandle	high_pass_filter_impl.h	/^  virtual int DestroyHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+Enable	high_pass_filter_impl.cc	/^int HighPassFilterImpl::Enable(bool enable) {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(bool enable)
+Enable	high_pass_filter_impl.h	/^  virtual int Enable(bool enable);$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(bool enable)
+Filter	high_pass_filter_impl.cc	/^int Filter(FilterState* hpf, WebRtc_Word16* data, int length) {$/;"	f	namespace:webrtc::__anon1	signature:(FilterState* hpf, WebRtc_Word16* data, int length)
+FilterState	high_pass_filter_impl.cc	/^struct FilterState {$/;"	s	namespace:webrtc::__anon1	file:
+GetHandleError	high_pass_filter_impl.cc	/^int HighPassFilterImpl::GetHandleError(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+GetHandleError	high_pass_filter_impl.h	/^  virtual int GetHandleError(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+Handle	high_pass_filter_impl.cc	/^typedef FilterState Handle;$/;"	t	namespace:webrtc	file:
+HighPassFilterImpl	high_pass_filter_impl.cc	/^HighPassFilterImpl::HighPassFilterImpl(const AudioProcessingImpl* apm)$/;"	f	class:webrtc::HighPassFilterImpl	signature:(const AudioProcessingImpl* apm)
+HighPassFilterImpl	high_pass_filter_impl.h	/^  explicit HighPassFilterImpl(const AudioProcessingImpl* apm);$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(const AudioProcessingImpl* apm)
+HighPassFilterImpl	high_pass_filter_impl.h	/^class HighPassFilterImpl : public HighPassFilter,$/;"	c	namespace:webrtc	inherits:HighPassFilter,ProcessingComponent
+InitializeFilter	high_pass_filter_impl.cc	/^int InitializeFilter(FilterState* hpf, int sample_rate_hz) {$/;"	f	namespace:webrtc::__anon1	signature:(FilterState* hpf, int sample_rate_hz)
+InitializeHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::InitializeHandle(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+InitializeHandle	high_pass_filter_impl.h	/^  virtual int InitializeHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+ProcessCaptureAudio	high_pass_filter_impl.cc	/^int HighPassFilterImpl::ProcessCaptureAudio(AudioBuffer* audio) {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(AudioBuffer* audio)
+ProcessCaptureAudio	high_pass_filter_impl.h	/^  int ProcessCaptureAudio(AudioBuffer* audio);$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(AudioBuffer* audio)
+WEBRTC_MODULES_AUDIO_PROCESSING_MAIN_SOURCE_HIGH_PASS_FILTER_IMPL_H_	high_pass_filter_impl.h	12;"	d
+WEBRTC_SPL_SAT	high_pass_filter.c	8;"	d	file:
+apm_	high_pass_filter_impl.h	/^  const AudioProcessingImpl* apm_;$/;"	m	class:webrtc::HighPassFilterImpl	access:private
+ba	high_pass_filter.c	/^  const int16_t* ba;$/;"	m	struct:high_pass_filter	file:	access:public
+ba	high_pass_filter_impl.cc	/^  const WebRtc_Word16* ba;$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+coefficients	high_pass_filter.c	/^static const int16_t coefficients[5] = {4012, -8024, 4012, 8002, -3913};$/;"	v	file:
+coefficients_8khz	high_pass_filter.c	/^static const int16_t coefficients_8khz[5] = {3798, -7596, 3798, 7807, -3733};$/;"	v	file:
+get_version	high_pass_filter_impl.cc	/^int HighPassFilterImpl::get_version(char* version,$/;"	f	class:webrtc::HighPassFilterImpl	signature:(char* version, int version_len_bytes) const
+get_version	high_pass_filter_impl.h	/^  virtual int get_version(char* version, int version_len_bytes) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(char* version, int version_len_bytes) const
+high_pass_filter	high_pass_filter.c	/^struct high_pass_filter {$/;"	s	file:
+high_pass_filter::ba	high_pass_filter.c	/^  const int16_t* ba;$/;"	m	struct:high_pass_filter	file:	access:public
+high_pass_filter::x	high_pass_filter.c	/^  int16_t x[2];$/;"	m	struct:high_pass_filter	file:	access:public
+high_pass_filter::y	high_pass_filter.c	/^  int16_t y[4];$/;"	m	struct:high_pass_filter	file:	access:public
+high_pass_filter_create	high_pass_filter.c	/^struct high_pass_filter* high_pass_filter_create (int sample_rate_hz)$/;"	f	signature:(int sample_rate_hz)
+high_pass_filter_create	high_pass_filter.h	/^struct high_pass_filter* high_pass_filter_create (int sample_rate_hz);$/;"	p	signature:(int sample_rate_hz)
+high_pass_filter_destroy	high_pass_filter.c	/^void high_pass_filter_destroy (struct high_pass_filter* filter)$/;"	f	signature:(struct high_pass_filter* filter)
+high_pass_filter_destroy	high_pass_filter.h	/^void high_pass_filter_destroy (struct high_pass_filter* filter);$/;"	p	signature:(struct high_pass_filter* filter)
+high_pass_filter_process	high_pass_filter.c	/^int high_pass_filter_process (struct high_pass_filter* filter, int16_t* data, int length)$/;"	f	signature:(struct high_pass_filter* filter, int16_t* data, int length)
+high_pass_filter_process	high_pass_filter.h	/^int high_pass_filter_process (struct high_pass_filter* filter, int16_t* data, int length);$/;"	p	signature:(struct high_pass_filter* filter, int16_t* data, int length)
+is_enabled	high_pass_filter_impl.cc	/^bool HighPassFilterImpl::is_enabled() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+is_enabled	high_pass_filter_impl.h	/^  virtual bool is_enabled() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:() const
+kFilterCoefficients	high_pass_filter_impl.cc	/^const WebRtc_Word16 kFilterCoefficients[5] =$/;"	m	namespace:webrtc::__anon1	file:
+kFilterCoefficients8kHz	high_pass_filter_impl.cc	/^const WebRtc_Word16 kFilterCoefficients8kHz[5] =$/;"	m	namespace:webrtc::__anon1	file:
+main	thpf.c	/^int main (int argc, char* argv[])$/;"	f	signature:(int argc, char* argv[])
+num_handles_required	high_pass_filter_impl.cc	/^int HighPassFilterImpl::num_handles_required() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+num_handles_required	high_pass_filter_impl.h	/^  virtual int num_handles_required() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:() const
+print_data	thpf.c	/^static void print_data (const int16_t* data, int length)$/;"	f	file:	signature:(const int16_t* data, int length)
+test	thpf.c	/^static void test (int frq, int smpfrq, int length)$/;"	f	file:	signature:(int frq, int smpfrq, int length)
+webrtc	high_pass_filter_impl.cc	/^namespace webrtc {$/;"	n	file:
+webrtc	high_pass_filter_impl.h	/^namespace webrtc {$/;"	n
+webrtc::Handle	high_pass_filter_impl.cc	/^typedef FilterState Handle;$/;"	t	namespace:webrtc	file:
+webrtc::HighPassFilterImpl	high_pass_filter_impl.h	/^class HighPassFilterImpl : public HighPassFilter,$/;"	c	namespace:webrtc	inherits:HighPassFilter,ProcessingComponent
+webrtc::HighPassFilterImpl::ConfigureHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::ConfigureHandle(void* \/*handle*\/) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* ) const
+webrtc::HighPassFilterImpl::ConfigureHandle	high_pass_filter_impl.h	/^  virtual int ConfigureHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+webrtc::HighPassFilterImpl::CreateHandle	high_pass_filter_impl.cc	/^void* HighPassFilterImpl::CreateHandle() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+webrtc::HighPassFilterImpl::CreateHandle	high_pass_filter_impl.h	/^  virtual void* CreateHandle() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:() const
+webrtc::HighPassFilterImpl::DestroyHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::DestroyHandle(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+webrtc::HighPassFilterImpl::DestroyHandle	high_pass_filter_impl.h	/^  virtual int DestroyHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+webrtc::HighPassFilterImpl::Enable	high_pass_filter_impl.cc	/^int HighPassFilterImpl::Enable(bool enable) {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(bool enable)
+webrtc::HighPassFilterImpl::Enable	high_pass_filter_impl.h	/^  virtual int Enable(bool enable);$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(bool enable)
+webrtc::HighPassFilterImpl::GetHandleError	high_pass_filter_impl.cc	/^int HighPassFilterImpl::GetHandleError(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+webrtc::HighPassFilterImpl::GetHandleError	high_pass_filter_impl.h	/^  virtual int GetHandleError(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+webrtc::HighPassFilterImpl::HighPassFilterImpl	high_pass_filter_impl.cc	/^HighPassFilterImpl::HighPassFilterImpl(const AudioProcessingImpl* apm)$/;"	f	class:webrtc::HighPassFilterImpl	signature:(const AudioProcessingImpl* apm)
+webrtc::HighPassFilterImpl::HighPassFilterImpl	high_pass_filter_impl.h	/^  explicit HighPassFilterImpl(const AudioProcessingImpl* apm);$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(const AudioProcessingImpl* apm)
+webrtc::HighPassFilterImpl::InitializeHandle	high_pass_filter_impl.cc	/^int HighPassFilterImpl::InitializeHandle(void* handle) const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(void* handle) const
+webrtc::HighPassFilterImpl::InitializeHandle	high_pass_filter_impl.h	/^  virtual int InitializeHandle(void* handle) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:(void* handle) const
+webrtc::HighPassFilterImpl::ProcessCaptureAudio	high_pass_filter_impl.cc	/^int HighPassFilterImpl::ProcessCaptureAudio(AudioBuffer* audio) {$/;"	f	class:webrtc::HighPassFilterImpl	signature:(AudioBuffer* audio)
+webrtc::HighPassFilterImpl::ProcessCaptureAudio	high_pass_filter_impl.h	/^  int ProcessCaptureAudio(AudioBuffer* audio);$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(AudioBuffer* audio)
+webrtc::HighPassFilterImpl::apm_	high_pass_filter_impl.h	/^  const AudioProcessingImpl* apm_;$/;"	m	class:webrtc::HighPassFilterImpl	access:private
+webrtc::HighPassFilterImpl::get_version	high_pass_filter_impl.cc	/^int HighPassFilterImpl::get_version(char* version,$/;"	f	class:webrtc::HighPassFilterImpl	signature:(char* version, int version_len_bytes) const
+webrtc::HighPassFilterImpl::get_version	high_pass_filter_impl.h	/^  virtual int get_version(char* version, int version_len_bytes) const;$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:(char* version, int version_len_bytes) const
+webrtc::HighPassFilterImpl::is_enabled	high_pass_filter_impl.cc	/^bool HighPassFilterImpl::is_enabled() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+webrtc::HighPassFilterImpl::is_enabled	high_pass_filter_impl.h	/^  virtual bool is_enabled() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:() const
+webrtc::HighPassFilterImpl::num_handles_required	high_pass_filter_impl.cc	/^int HighPassFilterImpl::num_handles_required() const {$/;"	f	class:webrtc::HighPassFilterImpl	signature:() const
+webrtc::HighPassFilterImpl::num_handles_required	high_pass_filter_impl.h	/^  virtual int num_handles_required() const;$/;"	p	class:webrtc::HighPassFilterImpl	access:private	signature:() const
+webrtc::HighPassFilterImpl::~HighPassFilterImpl	high_pass_filter_impl.cc	/^HighPassFilterImpl::~HighPassFilterImpl() {}$/;"	f	class:webrtc::HighPassFilterImpl	signature:()
+webrtc::HighPassFilterImpl::~HighPassFilterImpl	high_pass_filter_impl.h	/^  virtual ~HighPassFilterImpl();$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:()
+webrtc::__anon1::Filter	high_pass_filter_impl.cc	/^int Filter(FilterState* hpf, WebRtc_Word16* data, int length) {$/;"	f	namespace:webrtc::__anon1	signature:(FilterState* hpf, WebRtc_Word16* data, int length)
+webrtc::__anon1::FilterState	high_pass_filter_impl.cc	/^struct FilterState {$/;"	s	namespace:webrtc::__anon1	file:
+webrtc::__anon1::FilterState::ba	high_pass_filter_impl.cc	/^  const WebRtc_Word16* ba;$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+webrtc::__anon1::FilterState::x	high_pass_filter_impl.cc	/^  WebRtc_Word16 x[2];$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+webrtc::__anon1::FilterState::y	high_pass_filter_impl.cc	/^  WebRtc_Word16 y[4];$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+webrtc::__anon1::InitializeFilter	high_pass_filter_impl.cc	/^int InitializeFilter(FilterState* hpf, int sample_rate_hz) {$/;"	f	namespace:webrtc::__anon1	signature:(FilterState* hpf, int sample_rate_hz)
+webrtc::__anon1::kFilterCoefficients	high_pass_filter_impl.cc	/^const WebRtc_Word16 kFilterCoefficients[5] =$/;"	m	namespace:webrtc::__anon1	file:
+webrtc::__anon1::kFilterCoefficients8kHz	high_pass_filter_impl.cc	/^const WebRtc_Word16 kFilterCoefficients8kHz[5] =$/;"	m	namespace:webrtc::__anon1	file:
+x	high_pass_filter.c	/^  int16_t x[2];$/;"	m	struct:high_pass_filter	file:	access:public
+x	high_pass_filter_impl.cc	/^  WebRtc_Word16 x[2];$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+y	high_pass_filter.c	/^  int16_t y[4];$/;"	m	struct:high_pass_filter	file:	access:public
+y	high_pass_filter_impl.cc	/^  WebRtc_Word16 y[4];$/;"	m	struct:webrtc::__anon1::FilterState	file:	access:public
+~HighPassFilterImpl	high_pass_filter_impl.cc	/^HighPassFilterImpl::~HighPassFilterImpl() {}$/;"	f	class:webrtc::HighPassFilterImpl	signature:()
+~HighPassFilterImpl	high_pass_filter_impl.h	/^  virtual ~HighPassFilterImpl();$/;"	p	class:webrtc::HighPassFilterImpl	access:public	signature:()
