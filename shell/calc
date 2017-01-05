@@ -1,0 +1,27 @@
+#! /bin/bash
+# 变量算术
+
+# 错误
+var=1
+var=$var+1
+echo $var
+
+# C 风格表达式
+var=0
+echo $((var += 1))      # 1
+echo $((var++))         # 1
+echo $((++var))         # 3
+echo $((var << 1))      # 6
+echo $((var * var))     # 9
+echo $((var % 2))       # 1
+var=$((var - 1))
+echo $var               # 2
+
+# bash 特有
+let 'var = var / 3'     # 除法向零取整
+echo $var               # 1
+
+# expr: 杀鸡用牛刀, 调用外部程序性能差
+var=1
+var=$(expr "$var" + 1)
+echo $var               # 2

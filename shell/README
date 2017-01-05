@@ -1,0 +1,35 @@
+#! /bin/more
+
+
+特殊字符
+
+#   注释, 以 # 开头为注释(#! 列外) 
+    被转义的 # 不是注释; # 也可以出现在特定的参数替换结构中或数字常量表达式中
+
+    echo "The # here does not begin a comment."
+    echo 'The # here does not begin a comment.'
+    echo The \# here does not begin a comment.
+    echo The # here does begin a comment.
+    echo ${$PATH#*:} # 参数替换, 不是注释
+    echo $(( 2#101011) ) # 数制转换, 不是注释
+
+;   命令分隔符, 可以用来在一行中执行多条命令
+
+    echo hello; echo there
+    if [ -x "$filename" ]; then
+        ...
+    fi
+
+;;  终止 case 选项
+
+    case "$var" in
+        agc) echo "\$var = abc";;
+        xyz) echo "\$var = xyz";;
+    esac
+
+
+内建变量
+
+$BASH_ENV 指向一个 bash 启动文件, 这个文件在调用一个脚本时执行
+$FUNCNAME 当前函数的名字
+$LINENO   在脚本中的行号

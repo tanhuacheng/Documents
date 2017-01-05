@@ -1,0 +1,26 @@
+#! /bin/bash
+# array
+
+x1[0]=0
+x1[2]=2
+x1[10]=10
+echo ${x1[2]}
+echo ${x1[*]}
+
+x2=(0 1 2 3)
+echo ${x2[*]}
+
+x3=([1]=1 [2]=2 [50]=50)
+echo ${x3[*]}
+echo ${#x3[@]}
+
+string='abcdefghijklmnopqrstuvwxyz'
+echo ${string[*]}
+echo ${string[@]}
+echo ${string[0]}
+echo ${string[1]}
+
+echo ${#string[*]}
+echo ${#string[@]}
+echo ${#string[0]}
+echo ${#string[1]}

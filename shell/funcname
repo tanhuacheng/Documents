@@ -1,0 +1,9 @@
+#! /bin/bash
+# 当前函数名
+
+xyz23 () {
+    echo "$FUNCNAME now executing."
+}
+
+xyz23
+echo "\$FUNCNAME=$FUNCNAME"
