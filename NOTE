@@ -1,1 +1,2 @@
+git commit -m "$(whoami)@$(uname -n) $(date)"
 gcolor2: 选择颜色 获取鼠标位置的颜色
