@@ -1,0 +1,4 @@
+#! /bin/bash
+# 获取物理地址
+
+ifconfig | grep -o --color=never -E -e '^.*[0-9a-fA-F]{2}(?:[0-9a-fA-F]{2}){5}.*$'
