@@ -1,0 +1,19 @@
+#! /bin/bash
+# 列出包含 keyword 的 后缀名为 suffix 的文件列表
+# 在希望同时打开这些文件时很有用, 列入 vim $(findmatch keyword suffix)
+# Usage: findmatch keyword [suffix]
+
+if [ -z "$1" ]; then
+    echo "Usage: findmatch keyword [suffix]"
+    exit 0
+fi
+
+if [ -n "$2" ]; then
+    files=$(grep -nR -P -e "$1" | grep -o --color=never -P -e "\\S+\\.(?:${2})(?=:[0-9]+:)" -o --color=never)
+else
+    files=$(grep -nR -P -e "$1" | grep -o --color=never -P -e "\\S+(?=:[0-9]+:)" -o --color=never)
+fi
+
+echo "$files" | sort -u
+
+exit 0
