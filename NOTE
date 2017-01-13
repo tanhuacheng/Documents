@@ -1,2 +1,8 @@
 git commit -m "$(whoami)@$(uname -n) $(date)"
 gcolor2: 选择颜色 获取鼠标位置的颜色
+
+// 在 /var/log/syslog 文件中记录日志消息
+#include <syslog.h>
+syslog(LOG_INFO, "echo server start");
+
+inetd 超级服务器

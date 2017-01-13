@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -17,7 +18,7 @@ int main(int argc, char *argv[])
 
     struct sockaddr_in addr = {
         .sin_family = AF_INET,
-        .sin_port = htons(8000),
+        .sin_port = htons(7),
         .sin_addr.s_addr = inet_addr("127.0.0.1"),
     };
 
@@ -33,7 +34,14 @@ int main(int argc, char *argv[])
             perror("write");
             exit(1);
         }
-        sleep(3);
+        memset(buff, '\0', sizeof(buff));
+        if (read(fd, buff, sizeof(buff)) < 0) {
+            perror("read");
+            exit(1);
+        }
+        printf("%.*s\n", (int)sizeof(buff), buff);
+        close(fd);
+        break;
     }
 
     return 0;
