@@ -1,16 +1,16 @@
 git commit -m "$(whoami)@$(uname -n) $(date)"
 gcolor2: 选择颜色 获取鼠标位置的颜色
 
+
 // 在 /var/log/syslog 文件中记录日志消息
 #include <syslog.h>
 syslog(LOG_INFO, "echo server start");
 
+
 inetd 超级服务器
 
+
 更新 vim 配置:
-删除 ~/.vim/template ~/.vim/Ultisnips ~/.vim/bundle/c-surpport
+删除 ~/.vim/template ~/.vim/Ultisnips c-surpport poweline minibufexpl
+增加 airline airline-clock
 修改 ~/.vim/vimogen_repos ~/.vim/vimrc
-执行 :PowerlineClearCache (vim-fugitive 在后安装, 清除 cache 后将在状态栏显示分支等信息)
-增加 vimcdoc vim help 中文版
-     解压 vimcdoc-x.x.x.tar.gz, 执行 vimcdoc.sh -i, 拷贝生成的 doc plugin syntax 到 vimcdoc
-     mv vimcdoc bundle/
