@@ -14,3 +14,7 @@ inetd 超级服务器
 删除 ~/.vim/template ~/.vim/Ultisnips c-surpport poweline minibufexpl
 增加 airline airline-clock
 修改 ~/.vim/vimogen_repos ~/.vim/vimrc
+
+
+jni is_ir2_device 可用条件变量
+agc 音量大时调整速度过快
