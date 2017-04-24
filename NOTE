@@ -1,3 +1,29 @@
+主题配置:
+
+    cd ~/bin
+    git clone https://github.com/Anthony25/gnome-terminal-colors-solarized.git
+    cd gnome-terminal-colors-solarized && ./install.sh
+
+    cd ~/bin
+    git clone git://github.com/seebi/dircolors-solarized.git
+    cd dircolors-solarized && cp dircolors.256dark ~/.dircolors
+
+    sudo apt install powerline
+    将下面的代码加入 ~/.bashrc 中
+    if [ -f /usr/share/powerline/bindings/bash/powerline.sh ]; then
+        . /usr/share/powerline/bindings/bash/powerline.sh
+    fi
+
+
+使用 tmux:
+
+    sudo apt install tmux
+    cd
+    git clone https://github.com/tanhuacheng/.tmux.git
+    ln -s -f .tmux/.tmux.conf 
+    ln -s -f .tmux/.tmux.conf.local
+
+
 git commit -m "$(whoami)@$(uname -n) $(date)"
 gcolor2: 选择颜色 获取鼠标位置的颜色
 
