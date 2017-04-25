@@ -1,3 +1,16 @@
+ssh 登录服务器前后执行本地命令
+
+    ~/.vim/capmap.sh enter 96
+    ssh tanhc@server
+    sleep 0.2 && ~/.vim/capmap.sh exit
+
+
+ssh 免密码登录服务器
+
+    1. 在本地使用 ssh-keygen 生成密钥对, 密码为空
+    2. 把本地 id_rsa.pub 的内容加入服务器 ~/.ssh/authorized_keys 中
+
+
 主题配置:
 
     cd ~/bin
@@ -20,7 +33,7 @@
     sudo apt install tmux
     cd
     git clone https://github.com/tanhuacheng/.tmux.git
-    ln -s -f .tmux/.tmux.conf 
+    ln -s -f .tmux/.tmux.conf
     ln -s -f .tmux/.tmux.conf.local
 
 
