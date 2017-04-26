@@ -1,0 +1,74 @@
+字符和数字是不同类型的对象
+
+读取语法: #\ + 字符. 例如, #\x 就是字符 x
+
+任何字符都可以用在 #\ 后, 包括 ", (, 空格 等特殊字符. 但以这种方式来写空格字符对我们来说可读性不高,
+特定字符的替代语法是 #\ 后跟该字符的名字. 例如 #\Space, #\Newline. 这两个是标准定义了的, 其他半标准
+化的名字(如果字符集包含相应的字符实现就必须采用的名字)是: tab, page, rubout, linefeed, return,
+backspace
+
+
+字符比较:
+
+    可以对字符做的主要操作, 除了将他们放进字符串之外, 还可以将他们与其它字符相比较. 由于字符不是数字
+所以不能使用诸如 <, > 这样的数值比较函数
+
+    大小写有关          大小写无关
+    char=               char-equal
+    char/=              char-not-equal
+    char<               char-lessp
+    char>               char-greaterp
+    char<=              char-not-greaterp
+    char>=              char-not-lessp
+
+    其它处理字符的函数包括测试一个给定字符是否是字母, 大小写, 获取不同大小写的对应字符, 在代表字符编
+码的数值和实际字符对象之间的转化
+
+
+字符串:
+
+字面字符串写在闭合的双引号里. 除了 " \ 可以在一个字面字符串中包括任何字符集支持的字符. \ 总是转义其
+下一个字符, 无论它是什么, 尽管除了 " \ 之外的其它字符并不必要.
+
+    "foobar"        -> foobar
+    "foo\"bar"      -> foo"bar
+    "foo\\bar"      -> foo\bar
+    "\"foobar\""    -> "foobar"
+    "foo\bar"       -> foobar
+
+注意, REPL 将以可读的形式原样打印字符串, 并带有外围的 " 和必要的 \. 另外, format 将显示实际的字符串
+内容:
+
+    (format t "foo\"bar")
+    foo"bar
+    NIL
+
+
+字符串比较:
+
+    字符串比较只能比较两个字符串, 因为他们还带有关键字参数, 从而允许将比较限制在每个或两个字符串的子
+串上 :start1, :end1, :start2, :end2
+
+    大小写有关          大小写无关
+    string=             string-equal
+    string/=            string-not-equal
+    string<             string-lessp
+    string>             string-greaterp
+    string<=            string-not-greaterp
+    string>=            string-not-lessp
+
+    下面比较子字符串 "bar" 并返回真
+    (string= "foobarbaz" "quuxbarfoo" :start1 3 :end1 6 :start2 4 :end2 7)
+    T
+
+    当参数不同时返回真的比较符, 也即 string= string-equal 之外的所有操作符, 将返回第一个字符串中首次
+检测到不匹配的索引
+
+    (string/= "lisp" "lissome")
+    3
+
+    (string< "lisp" "lisper")
+    4
+
+    其它字符串函数允许你转化字符串的大小写以及从一个字符串的一端或两端修剪字符, 所有序列函数都可以用
+与字符串
