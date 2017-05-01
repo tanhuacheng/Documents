@@ -1,3 +1,7 @@
+/dev/sda2 /media/tanhc/disk/win-c ntfs defaults 0 0
+/dev/sda5 /media/tanhc/disk/win-d ntfs defaults 0 0
+/dev/sda6 /media/tanhc/disk/win-e ntfs defaults 0 0
+
 ssh 登录服务器前后执行本地命令
 
     ~/.vim/capmap.sh enter 96
