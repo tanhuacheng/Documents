@@ -1,3 +1,8 @@
+git 拉取远程tag
+
+    git fetch --tags
+
+
 在命令行编辑中使用 vi 模式
 
     set -o vi
