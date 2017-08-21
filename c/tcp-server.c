@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         printf("accept %d\n", cfd);
 
         switch (fork()) {
-            case -1: 
+            case -1:
                 perror("fork");
                 close(cfd);
                 break;
