@@ -1,16 +1,32 @@
 #!/usr/bin/python3
 # -*- coding:utf-8
 
-'weather'
+"""
+查询城市天气
 
-__author__ = 'tanhc'
+Usage:
+    weather.py <city>
+
+Options:
+    -h,--help   显示帮助菜单
+
+Example:
+    weather.py 兴义
+"""
+
+__author__ = 'tanhuacheng'
 
 import requests
+from docopt import docopt
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 def main ():
-    req = requests.get('http://www.weather.com.cn/data/sk/101260101.html')
-    res = eval(req.text.encode(req.encoding).decode('utf-8'))
-    print(res)
+    arguments = docopt(__doc__)
+    req = requests.get('http://wthrcdn.etouch.cn/WeatherApi?city=%s' % arguments['<city>'])
+    print(req.text)
 
 if __name__ == '__main__':
     main()
