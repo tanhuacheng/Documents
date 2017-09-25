@@ -7,31 +7,35 @@ __author__ = 'tanhuacheng'
 
 import numpy as np
 
-def train(x, y, layers, activation, differential, loss, diff_loss, alpha, iterations):
+def train(x, y, layers, activations, differentials, loss, dloss, alpha, lambd, iterations):
+    assert(np.shape(y)[1] == np.shape(x)[1])
+    assert(np.shape(y)[0] == layers[-1])
+    assert(len(layers) == len(activations) == len(differentials))
+
+    m = np.shape(x)[1]
+
     w = [None]
     b = [None]
     z = [None]
     a = [x]
 
-    l, g, d, m = layers.copy(), activation.copy(), differential.copy(), np.shape(x)[1]
+    l, g, d = list(layers), list(activations), list(differentials)
     l.insert(0, np.shape(x)[0])
     g.insert(0, None)
     d.insert(0, None)
-
     L = len(l)
-    assert(L == len(g) == len(d))
 
-    da, dz, dw, db = [None], [None], [None], [None]
+    da, dz, dw, db = ([None] for i in range(4))
     for i in range(1, L):
-        w.append(np.random.randn(l[i], l[i - 1]) * 1)
-        b.append(np.zeros((l[i], 1)))
+        w.append(np.random.randn(l[i], l[i - 1]) * np.sqrt(1 / l[i - 1]))
+        b.append(np.random.randn(l[i], 1))
         z.append(None)
         a.append(None)
 
-        da.append(None)
-        dz.append(None)
-        dw.append(None)
-        db.append(None)
+        da.append(0)
+        dz.append(0)
+        dw.append(0)
+        db.append(0)
 
     cost = []
     for it in range(iterations):
@@ -39,22 +43,14 @@ def train(x, y, layers, activation, differential, loss, diff_loss, alpha, iterat
             z[i] = np.dot(w[i], a[i - 1]) + b[i]
             a[i] = g[i](z[i])
 
-        loss_y = loss(a[-1], y)
-        if it > iterations - 100000:
-            cost.append(np.sum(loss_y, axis=1, keepdims=True) / m)
-            if cost[-1] < 0.0025:
-                print(cost[-1])
-                return cost, w[1:], b[1:]
-        da[-1] = diff_loss(a[-1], y, loss_y)
+        cost.append(np.sum(loss(a[-1], y)) / m)
+        da[-1] = dloss(a[-1], y)
 
         for i in range(1, L):
             dz[-i] = da[-i] * d[-i](z[-i], a[-i])
-            dw[-i] = np.dot(dz[-i], a[-i - 1].T) / m
+            dw[-i] = (np.dot(dz[-i], a[-i - 1].T) + dw[-i] * lambd) / m
             db[-i] = np.sum(dz[-i], axis=1, keepdims=True) / m
             da[-i - 1] = np.dot(w[-i].T, dz[-i])
-
-        #  if it > 10000 and (it % 1000) == 0:
-        #      alpha = alpha * 0.8
 
         for i in range(1, L):
             w[i] = w[i] - alpha * dw[i]
@@ -68,7 +64,3 @@ def test(x, w, b, g):
         z = np.dot(w[i], x) + b[i]
         x = g[i](z)
     return x
-
-
-if __name__ == '__main__':
-    pass
