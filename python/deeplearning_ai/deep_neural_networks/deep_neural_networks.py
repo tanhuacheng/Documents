@@ -6,6 +6,7 @@
 __author__ = 'tanhuacheng'
 
 import numpy as np
+import time
 
 def train(x, y, layers, activations, differentials, loss, dloss, alpha, lambd, iterations):
     assert(np.shape(y)[1] == np.shape(x)[1])
@@ -52,7 +53,16 @@ def train(x, y, layers, activations, differentials, loss, dloss, alpha, lambd, i
     #  decay = [[12500, 0.5], [-1]]
 
     cost = []
+    tic = time.time()
+
     for it in range(iterations):
+        if not (it % (iterations // 100)):
+            percent = it // (iterations // 100)
+            print('\rProceeding \033[32m[', end='')
+            for i in range(10):
+                print('=' if i < percent % 10 else ' ', end='')
+            print(']\033[0m [% 3d%%] [%.2fs]' % (percent, time.time() - tic), end='', flush=True)
+
         for i in range(1, L):
             z[i] = np.dot(w[i], a[i - 1]) + b[i]
             a[i] = g[i](z[i])
@@ -62,10 +72,11 @@ def train(x, y, layers, activations, differentials, loss, dloss, alpha, lambd, i
 
         for i in range(1, L):
             dz[-i] = da[-i] * d[-i](z[-i], a[-i])
-            dw[-i] = (np.dot(dz[-i], a[-i - 1].T) + dw[-i] * lambd) / m
+            dw[-i] = np.dot(dz[-i], a[-i - 1].T) / m
             db[-i] = np.sum(dz[-i], axis=1, keepdims=True) / m
             da[-i - 1] = np.dot(w[-i].T, dz[-i])
 
+            dw[-i] += w[-i] * lambd / m
             vdw[-i] = beta1 * vdw[-i] + (1 - beta1) * dw[-i]
             vdb[-i] = beta1 * vdb[-i] + (1 - beta1) * db[-i]
             sdw[-i] = beta2 * sdw[-i] + (1 - beta2) * np.power(dw[-i], 2)
@@ -87,6 +98,8 @@ def train(x, y, layers, activations, differentials, loss, dloss, alpha, lambd, i
 
             w[i] = w[i] - alpha * (c_vdw / (np.sqrt(c_sdw) + epsln))
             b[i] = b[i] - alpha * (c_vdb / (np.sqrt(c_sdb) + epsln))
+
+    print('\rProceeding [----------] \033[1;32m[100%%]\033[0m [%.2fs]\n' % (time.time() - tic))
 
     return cost, w[1:], b[1:]
 

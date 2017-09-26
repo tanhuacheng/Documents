@@ -39,43 +39,52 @@ import matplotlib.pyplot as plt
 import time
 
 def main():
-    a = np.loadtxt('../logistic_regression/diabetes_dataset/diabetes_train').T
-    x = a[1:]
-    y = np.reshape(a[0, :], (1, np.shape(x)[1]))
+    #  a = np.loadtxt('../logistic_regression/diabetes_dataset/diabetes_train').T
+    #  x = a[1:]
+    #  y = np.reshape(a[0, :], (1, np.shape(x)[1]))
+    #
+    #  a = np.loadtxt('../logistic_regression/diabetes_dataset/diabetes_test').T
+    #  tx = a[1:]
+    #  ty = np.reshape(a[0, :], (1, np.shape(tx)[1]))
 
-    a = np.loadtxt('../logistic_regression/diabetes_dataset/diabetes_test').T
-    tx = a[1:]
-    ty = np.reshape(a[0, :], (1, np.shape(tx)[1]))
+    np.random.seed(0)
+    x = np.random.randn(3, 8192)
+    y = (np.sqrt(np.sum(np.power(x, 2), axis=0, keepdims=True)) < 1.7) * 1.0
+
+    tx = np.random.randn(3, 1024)
+    ty = (np.sqrt(np.sum(np.power(tx, 2), axis=0, keepdims=True)) < 1.7) * 1.0
 
     r = []
     for i in range(1, 2):
         for j in range(1, 2):
             np.random.seed(0)
 
-            l = [9, 16, 9, 1]
-            g = [np.tanh, np.tanh, np.tanh, sigmoid]
-            d = [dtanh, dtanh, dtanh, dsigmoid]
-            alpha = 0.0012
+            l = [9, 5, 1]
+            g = [np.tanh, np.tanh, sigmoid]
+            d = [dtanh, dtanh, dsigmoid]
+            alpha = 0.0005
             lambd = 0
-            it = 7000
+            it = 15000
 
             c, w, b = train(x, y, l, g, d, loss, dloss, alpha, lambd, it)
-            toc = time.time()
             cost = np.sum(c[-8:]) / 8
-            print(cost, w, l, alpha, lambd, it)
+            wsum = 0
+            for i in w:
+                wsum += np.sqrt(np.sum(np.power(i, 2)))
+            print(cost, wsum, l, alpha, lambd, it)
 
-            t = []
-            result = (test(x, w, b, g) > 0.5) - y
-            nerror = np.sum(np.abs(result)) * 100 / np.shape(y)[1]
-            t.append(nerror)
-            print('%.2f%%' % nerror)
+            t = [cost]
 
             result = (test(tx, w, b, g) > 0.5) - ty
             nerror = np.sum(np.abs(result)) * 100 / np.shape(ty)[1]
             t.append(nerror)
             print('%.2f%%' % nerror)
 
-            t.append(cost)
+            result = (test(x, w, b, g) > 0.5) - y
+            nerror = np.sum(np.abs(result)) * 100 / np.shape(y)[1]
+            t.append(nerror)
+            print('%.2f%%' % nerror)
+
             t.append(l)
             t.append(alpha)
             t.append(lambd)
@@ -83,7 +92,7 @@ def main():
             r.append(t)
             print()
 
-    print('\n', r, '\n')
+    print()
     r.sort(key=lambda x: x[0])
     print(r[0:2])
     r.sort(key=lambda x: x[1])
