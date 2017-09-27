@@ -3,11 +3,11 @@
 
 'a temp module'
 
-__author__ = 'tanhc'
+__author__ = 'tanhuacheng'
 
 # import something
 
-def main ():
+def main():
     pass
 
 if __name__ == '__main__':
