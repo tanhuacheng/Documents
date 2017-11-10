@@ -67,12 +67,11 @@ class NetEase(object):
         self.session.cookies = LWPCookieJar(self.cookie_path)
 
     def phone_login(self, phone, password, remember_login='true'):
-        text = {'phone': phone, 'password': hashlib.md5(password.encode()).hexdigest(), 'rememberLogin': remember_login}
-        #  sdata = {'params':
-        #          'IwvLroNZdmTARwYzhgNjmQmRbWS35hhzNg5KBJsrXhHGuZ8KK2i+UgbbAitZrXAkVBknjHoR1C91giDCQod6qcDSVXbd0ukQIcTpO3xiZWBmtJoNt8GgEMz913Yu9zutzq2bvNa9gQr5PfsCe7FQsocyBKpE4dbQYyzoeGxd9Dt4ny/jgTcYbPpBt/KyBAyrrhgSw22M3e4cPl43IDKiVgN3kXKudX7zzDGvq3QpiPRNXojX2VBgmwMu9bx732i9znCW4S5MbOssLmLCbdEdUw==',
-        #          'encSecKey':
-        #          '889deffff9fbda3cd1d36bc3079989be3736570ebc958d4c52f6aff3b5e1409501f9b0431deda52e53f3dd0bcd3b62ef02f02df48c391c6104f5753e32f57166be0483656b542df4bdf6770010ad6baff31f504b58adb25d778e2af0e30e8079eb5f7af7306f1c26d25e7ee4042b4568502687768b761dae4e0bdcd4530bf982'}
-        #  conn = self.session.post(NET_EASE_URL, data=sdata, headers=self.header)
+        text = {
+            'phone': phone,
+            'password': hashlib.md5(password.encode()).hexdigest(),
+            'rememberLogin': remember_login
+        }
         conn = self.session.post(NET_EASE_URL, data=encrypted_request(text), headers=self.header)
         self.session.cookies.save()
 
@@ -81,8 +80,13 @@ class NetEase(object):
 
         return conn.text
 
+
 if __name__ == '__main__':
-    phone = '***********'
-    password = '*'
+    import sys
+    from getpass import getpass
+
+    phone = input('phone number: ')
+    password = getpass('[%s] password for %s: ' % (sys.argv[0], phone));
+
     net_ease = NetEase()
     net_ease.phone_login(phone, password)
