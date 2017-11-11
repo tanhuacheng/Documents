@@ -11,83 +11,397 @@ import json
 import base64
 import hashlib
 import requests
+import time
 
 from Crypto.Cipher import AES
 from http.cookiejar import LWPCookieJar
 
-NET_EASE_NONCE   = '0CoJUm6Qyw8W8jud'
-NET_EASE_PUBKEY  = '010001'
-NET_EASE_MODULUS = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7' \
-                   'b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280' \
-                   '104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932' \
-                   '575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b' \
-                   '3ece0462db0a22b8e7'
-NET_EASE_AES_IV  = '0102030405060708'
-
-NET_EASE_URL_LOGIN = 'https://music.163.com/weapi/login/cellphone'
-
-COOKIE_PATH = os.path.join(os.path.curdir, '.cookies')
-
-def create_secret_key():
-    return binascii.hexlify(os.urandom(8))
-
-def aes_encrypt(text, key):
-    pad = 16 - len(text) % 16
-    text += chr(pad) * pad
-    encypter = AES.new(key, AES.MODE_CBC, NET_EASE_AES_IV)
-    ciphertext = encypter.encrypt(text)
-    return base64.b64encode(ciphertext).decode('utf-8')
-
-def rsa_encrypt(text, pubkey, modulus):
-    text = text[::-1]
-    rs = pow(int(binascii.hexlify(text), 16), int(pubkey, 16), int(modulus, 16))
-    return format(rs, 'x').zfill(256)
-
-def encrypted_request(text):
-    text = json.dumps(text)
-    key = create_secret_key()
-    encrypt_text = aes_encrypt(aes_encrypt(text, NET_EASE_NONCE), key)
-    encrypt_key = rsa_encrypt(key, NET_EASE_PUBKEY, NET_EASE_MODULUS)
-    return {'params': encrypt_text, 'encSecKey': encrypt_key}
-
 class NetEase(object):
 
-    def __init__(self):
-        self.headers = {
+    def __init__(self, configs_dir=None):
+        self.__headers = {
             'Accept': '*/*',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.9',
             'Connection': 'keep-alive',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Host': 'music.163.com',
+            'Origin': 'https://music.163.com',
             'Referer': 'https://music.163.com/',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' \
-                          ' Ubuntu Chromium/62.0.3202.75 Chrome/62.0.3202.75 Safari/537.36'
+            'User-Agent':
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
+                'Ubuntu Chromium/62.0.3202.75 Chrome/62.0.3202.75 Safari/537.36'
         }
 
-        self.session = requests.Session()
-        self.session.cookies = LWPCookieJar(COOKIE_PATH)
+        self.__nonce   = '0CoJUm6Qyw8W8jud'
+        self.__pubkey  = '010001'
+        self.__iv      = '0102030405060708'
+        self.__modulus = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7' \
+                         'b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280' \
+                         '104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932' \
+                         '575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b' \
+                         '3ece0462db0a22b8e7'
 
-    def login(self, phone, password, remember_login='true'):
+        self.__uri_login     = 'https://music.163.com/weapi/login/cellphone'
+        self.__uri_recommend = 'https://music.163.com/weapi/v2/discovery/recommend/songs?' \
+                               'csrf_token='
+        self.__uri_songs     = 'https://music.163.com/weapi/song/enhance/player/url?csrf_token='
+
+        self.__default_timeout = 5
+
+
+        self.__phone = None
+        self.__password = None
+
+        self.__session = requests.Session()
+        self.__login = {}
+
+        self.__path_cookies = None
+        self.__path_login = None
+
+        self.__recommend = {}
+
+        if (not isinstance(configs_dir, str)) or (not len(configs_dir)):
+            return
+        try:
+            if not os.path.isdir(configs_dir):
+                os.mkdir(configs_dir)
+        except Exception as e:
+            print('NetEase.__init__(W): {0}'.format(e))
+            return
+
+        self.__path_cookies = os.path.join(configs_dir, 'cookies')
+        self.__path_login = os.path.join(configs_dir, 'login')
+
+        self.__session.cookies = LWPCookieJar(self.__path_cookies)
+        try:
+            self.__session.cookies.load()
+            for c in self.__session.cookies:
+                break
+            else:
+                self.__session.cookies.clear()
+        except:
+            pass
+
+        try:
+            with open(self.__path_login, 'r') as f:
+                self.__login = json.load(f)
+                self.__phone = self.__login['my_phone']
+                self.__password = self.__login['my_password']
+        except:
+            pass
+
+        if (not self.__login) or (not self.__phone) or (not self.__password):
+            self.__phone = None
+            self.__password = None
+            self.__session.cookies.clear()
+            self.__login = {}
+
+        self.__login_if_needed()
+
+    def __create_seckey(self):
+        return binascii.hexlify(os.urandom(8))
+
+    def __aes_encrypt(self, text, seckey):
+        pad = 16 - len(text) % 16
+        if pad:
+            text += chr(pad) * pad
+
+        encypter = AES.new(seckey, AES.MODE_CBC, self.__iv)
+        enc_text = encypter.encrypt(text)
+        enc_text = base64.b64encode(enc_text).decode('utf-8')
+
+        return enc_text
+
+    def __rsa_encrypt(self, text):
+        text = text[::-1]
+        rsa = pow(int(binascii.hexlify(text), 16), int(self.__pubkey, 16), int(self.__modulus, 16))
+        rsa = format(rsa, 'x').zfill(256)
+
+        return rsa
+
+    def __encrypted_request(self, text):
+        text = json.dumps(text)
+        seckey = self.__create_seckey()
+
+        encrypt_txt = self.__aes_encrypt(self.__aes_encrypt(text, self.__nonce), seckey)
+        encrypt_key = self.__rsa_encrypt(seckey)
+
+        data = {'params': encrypt_txt, 'encSecKey': encrypt_key}
+
+        return data
+
+    def __save(self):
+        try:
+            if self.__path_cookies:
+                self.__session.cookies.save()
+            if self.__path_login:
+                with open(self.__path_login, 'w') as f:
+                    json.dump(self.__login, f)
+        except Exception as e:
+            print('NetEase.__save(W): {0}'.format(e))
+
+    def __login_if_needed(self, timeout=5):
+        if (not self.__phone) or (not self.__password):
+            return False
+
+        if self.__login:
+            for c in self.__session.cookies:
+                return True
+
+        self.__session.cookies.clear()
+        self.__login = {}
+        self.__save()
+
         text = {
-            'phone': phone,
-            'password': hashlib.md5(password.encode()).hexdigest(),
-            'rememberLogin': remember_login
+            'phone': self.__phone,
+            'password': hashlib.md5(self.__password.encode()).hexdigest(),
+            'rememberLogin': 'true'
         }
-        data = encrypted_request(text)
 
-        conn = self.session.post(NET_EASE_URL_LOGIN, data=data, headers=self.headers)
-        self.session.cookies.save()
+        try:
+            r = self.__session.post(self.__uri_login, data=self.__encrypted_request(text),
+                                    headers=self.__headers, timeout=self.__default_timeout)
+            r.raise_for_status()
+            r.encoding = 'utf-8'
+            r = json.loads(r.text)
+        except Exception as e:
+            print('NetEase.__login_if_needed(E): {0}'.format(e))
+            return False
 
-        conn.encoding = 'UTF-8'
+        if (not 'code' in r) or (200 != r['code']):
+            print('NetEase.__login_if_needed(E): {0}'.format(r['msg'] if 'msg' in r else 'Unknown error'))
+            return False
 
-        return json.loads(conn.text)
+        r['my_phone'] = self.__phone
+        r['my_password'] = self.__password
+        self.__login = r
+        self.__save()
+
+        self.__recommend = {}
+
+        print('NetEase.__login_if_needed(I): user successfully login')
+
+        return True
+
+    def login(self, phone, password):
+        self.__phone = phone
+        self.__password = password
+        self.__session.cookies.clear()
+        self.__login = {}
+
+        result = self.__login_if_needed()
+
+        return result
+
+    def is_login(self):
+        return self.__login_if_needed()
+
+    def get_recommend(self):
+        result = {}
+
+        if not self.__login_if_needed():
+            return result
+
+        if self.__recommend:
+            # update in 6:00 AM everyday
+            sec_6hours = 6 * 60 * 60
+            day_save = time.localtime(self.__recommend['time'] - sec_6hours)
+            day_curr = time.localtime(time.time() - sec_6hours)
+            if day_save.tm_yday == day_curr.tm_yday:
+                return self.__recommend.copy()
+
+        for c in self.__session.cookies:
+            if c.name == '__csrf':
+                uri, csrf = self.__uri_recommend + c.value, c.value
+                break
+        else:
+            return result
+
+        text = {'offset': 0, 'total': True, 'limit': 30, 'csrf_token': csrf}
+        try:
+            r = self.__session.post(uri, data=self.__encrypted_request(text),
+                                    headers=self.__headers, timeout=self.__default_timeout)
+            r.raise_for_status()
+            r.encoding = 'utf-8'
+            r = json.loads(r.text)
+        except Exception as e:
+            print('NetEase.get_recommend(E): {0}'.format(e))
+            return result
+
+        r['time'] = time.time()
+        self.__recommend = r
+
+        print('NetEase.get_recommend(I): recommend refreshed')
+
+        return r.copy()
+
+    def get_songs_url(self, music_ids, bit_rate=320000):
+        result = []
+
+        if not self.__login_if_needed():
+            return result
+
+        for c in self.__session.cookies:
+            if c.name == '__csrf':
+                uri, csrf = self.__uri_songs + c.value, c.value
+                break
+        else:
+            return result
+
+        text = {'ids': music_ids, 'br': bit_rate, 'csrf_token': csrf}
+        try:
+            r = self.__session.post(uri, data=self.__encrypted_request(text),
+                                    headers=self.__headers, timeout=self.__default_timeout)
+            r.raise_for_status()
+            r.encoding = 'utf-8'
+            r = json.loads(r.text)
+        except Exception as e:
+            print('NetEase.get_songs_url(E): {0}'.format(e))
+            return result
+
+        if (not 'code' in r) or (r['code'] != 200) or (not 'data' in r):
+            return result
+
+        return r['data']
+
 
 if __name__ == '__main__':
     import sys
+    import vlc
+    import readline
+    import math
     from getpass import getpass
 
-    phone = input('phone number: ')
-    password = getpass('[%s] password for %s: ' % (sys.argv[0], phone));
+    net_ease = NetEase(os.path.curdir)
+    if not net_ease.is_login():
+        phone = input('phone number: ')
+        password = getpass('[%s] password for %s: ' % (sys.argv[0], phone))
+        net_ease.login(phone, password)
 
-    print(NetEase().login(phone, password))
+    help_str = '''
+commands:
+    h, help                 display this comment
+    l, list                 display play list
+    p, play <id>            play song pointer by id
+    pn, pnext               play next song
+    pp, pprev               play prev song
+    P, pause                pause playing music
+    r, resume               resume paused music
+    s, stop                 stop playing music
+    v+                      increase volume
+    v-                      decrease volume
+    v=                      display current volume
+    q, quit
+    '''
+
+    print(help_str)
+
+    player = None
+    recommend = net_ease.get_recommend()['recommend']
+    mid = -9999
+
+    while True:
+        try:
+            cmd = input('> ').strip()
+        except:
+            sys.exit()
+        if not len(cmd):
+            continue
+
+        mid_prev = mid
+
+        if cmd == 'help' or cmd == 'h':
+            print(help_str)
+
+        elif cmd == 'list' or cmd == 'l':
+            recommend = net_ease.get_recommend()['recommend']
+            for i in range(len(recommend)):
+                end = '\n'
+                if not i % 2:
+                    end = ' ' * (50 - len(recommend[i]['name']))
+                print('% 4d' % i, recommend[i]['name'], end=end)
+
+        elif cmd.startswith('play') or (cmd[0] == 'p' and len(cmd) > 1 and cmd[1].isspace()):
+            mid = int(cmd[2:]) if cmd[1].isspace() else int(cmd[4:])
+
+        elif cmd == 'pn' or cmd == 'pnext':
+            mid = 0 if mid == -9999 else mid + 1
+
+        elif cmd == 'pp' or cmd == 'pprev':
+            mid = 0 if mid == -9999 else mid - 1
+
+        elif cmd == 'pause' or cmd == 'P':
+            if player and player.is_playing() == 1:
+                player.pause()
+
+        elif cmd == 'resume' or cmd == 'r':
+            if player and player.is_playing != 1:
+                player.play()
+
+        elif cmd == 'stop' or cmd == 's':
+            if player:
+                player.release()
+                player = None
+
+        elif cmd == 'v+':
+            if player:
+                vol = player.audio_get_volume() + 1
+                player.audio_set_volume(vol)
+                print('vol:', vol)
+
+        elif cmd == 'v++':
+            if player:
+                vol = player.audio_get_volume() + 10
+                player.audio_set_volume(vol)
+                print('vol:', vol)
+
+        elif cmd == 'v-':
+            if player:
+                vol = player.audio_get_volume() - 1
+                player.audio_set_volume(vol)
+                print('vol:', vol)
+
+        elif cmd == 'v--':
+            if player:
+                vol = player.audio_get_volume() - 10
+                player.audio_set_volume(vol)
+                print('vol:', vol)
+
+        elif cmd == 'v=':
+            if player:
+                print('vol:', player.audio_get_volume())
+
+        elif cmd == 'quit' or cmd == 'q':
+            sys.exit()
+
+        else:
+            print('command not found')
+
+
+        # paly
+        if not recommend:
+            mid = mid_prev
+            continue
+
+        if mid != mid_prev:
+            mid = mid % len(recommend)
+            if mid == mid_prev:
+                print('same song[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+                continue
+
+            if player:
+                player.release()
+                player = None
+
+            url = net_ease.get_songs_url([recommend[mid]['id']])[0]['url']
+            player = vlc.MediaPlayer(url)
+            if not player:
+                print('can not create player')
+                mid = mid_prev
+                continue
+            if player.play() == 0:
+                print('start play[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+            else:
+                print('faild play[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+                mid = mid_prev

@@ -1,0 +1,139 @@
+{
+    'artists': [{
+        'id': 62885,
+        'musicSize': 0,
+        'trans': '',
+        'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+        'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+        'albumSize': 0,
+        'picId': 0,
+        'alias': [],
+        'name': 'Kelly Clarkson',
+        'briefDesc': '',
+        'img1v1Id': 0
+    }],
+
+    'hMusic': {
+        'id': 1281584659, 'sr': 44100, 'volumeDelta': -3.13, 'playTime': 221946, 'bitrate': 320000,
+        'dfsId_str': None, 'extension': 'mp3', 'size': 8880631, 'dfsId': 0, 'name': None
+    },
+
+    'mMusic': {
+        'id': 1281584660, 'sr': 44100, 'volumeDelta': -2.72, 'playTime': 221946, 'bitrate': 160000,
+        'dfsId_str': None, 'extension': 'mp3', 'size': 4440338, 'dfsId': 0, 'name': None
+    },
+
+    'lMusic': {
+        'id': 1281584661, 'sr': 44100, 'volumeDelta': -2.79, 'playTime': 221946, 'bitrate': 96000,
+        'dfsId_str': None, 'extension': 'mp3', 'size': 2664221, 'dfsId': 0, 'name': None
+    },
+
+    'bMusic': {
+        'id': 1281584661, 'sr': 44100, 'volumeDelta': -2.79, 'playTime': 221946, 'bitrate': 96000,
+        'dfsId_str': None, 'extension': 'mp3', 'size': 2664221, 'dfsId': 0, 'name': None
+    },
+
+    'crbt': None,
+    'alg': 'itembased',
+    'starred': False,
+    'copyright': 1,
+    'reason': '根据你可能喜欢的单曲 Because Of You',
+    'no': 2,
+    'rtUrl': None,
+
+    'hearTime': 0,
+    'audition': None,
+    'disc': '1', 
+    'duration': 221946,
+    'alias': [],
+    'status': 0,
+
+    'privilege': {
+        'toast': False,
+        'payed': 0,
+        'maxbr': 999000,
+        'sp': 7,
+        'subp': 1,
+        'id': 2870985,
+        'cs': False,
+        'pl': 128000,
+        'fee': 8,
+        'st': 0,
+        'flag': 0,
+        'cp': 1,
+        'dl': 0,
+        'fl': 128000
+    },
+
+    'dayPlays': 0,
+    'name': "Stronger (What Doesn't Kill You)",
+    'starredNum': 0,
+    'rtUrls': [],
+
+    'score': 100,
+    'copyrightId': 7001,
+    'commentThreadId': 'R_SO_4_2870985',
+    'rurl': None,
+    'mvid': 31531,
+    'position': 2,
+    'id': 2870985,
+    'popularity': 100.0,
+    'fee': 8,
+    'playedNum': 0,
+
+    'ringtone': '',
+    'mp3Url': None,
+
+    'album': {
+        'publishTime': 1319385600007,
+        'description': '',
+        'picId_str': '109951163024444404',
+        'briefDesc': '',
+        'type': '专辑',
+        'songs': [],
+        'companyId': 0,
+        'artists': [{
+            'id': 62885,
+            'musicSize': 0,
+            'trans': '',
+            'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+            'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+            'albumSize': 0,
+            'picId': 0,
+            'alias': [],
+            'name': 'Kelly Clarkson',
+            'briefDesc': '',
+            'img1v1Id': 0
+        }],
+        'alias': [],
+        'size': 18,
+        'company': 'RCA',
+        'name': 'Stronger',
+        'pic': 109951163024444404,
+        'copyrightId': 7001,
+        'tags': '',
+        'commentThreadId': 'R_AL_3_289886',
+        'id': 289886,
+        'picUrl': 'http://p1.music.126.net/JahdelLNewYG3pcpWRJMDA==/109951163024444404.jpg',
+        'picId': 109951163024444404,
+        'status': 1,
+        'blurPicUrl': 'http://p1.music.126.net/JahdelLNewYG3pcpWRJMDA==/109951163024444404.jpg',
+        'artist': {
+            'id': 0,
+            'musicSize': 0,
+            'trans': '',
+            'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+            'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg',
+            'albumSize': 0,
+            'picId': 0,
+            'alias': [],
+            'name': '',
+            'briefDesc': '',
+            'img1v1Id': 0
+        }
+    },
+
+    'ftype': 0,
+    'rtype': 0,
+    'copyFrom': ''
+}
