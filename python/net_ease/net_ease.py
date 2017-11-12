@@ -42,10 +42,11 @@ class NetEase(object):
                          '575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b' \
                          '3ece0462db0a22b8e7'
 
-        self.__uri_login     = 'https://music.163.com/weapi/login/cellphone'
-        self.__uri_recommend = 'https://music.163.com/weapi/v2/discovery/recommend/songs?' \
-                               'csrf_token='
-        self.__uri_songs     = 'https://music.163.com/weapi/song/enhance/player/url?csrf_token='
+        self.__uri_login           = 'https://music.163.com/weapi/login/cellphone'
+        self.__uri_recommend       = 'https://music.163.com/weapi/v2/discovery/recommend/songs'
+        self.__uri_playlist        = 'https://music.163.com/weapi/user/playlist'
+        self.__uri_playlist_detail = 'https://music.163.com/weapi/v3/playlist/detail'
+        self.__uri_musics          = 'https://music.163.com/weapi/song/enhance/player/url'
 
         self.__default_timeout = 5
 
@@ -169,7 +170,7 @@ class NetEase(object):
             print('NetEase.__login_if_needed(E): {0}'.format(e))
             return False
 
-        if (not 'code' in r) or (200 != r['code']):
+        if not 'code' in r or r['code'] < 200 or r['code'] > 299:
             print('NetEase.__login_if_needed(E): {0}'.format(r['msg'] if 'msg' in r else 'Unknown error'))
             return False
 
@@ -197,71 +198,78 @@ class NetEase(object):
     def is_login(self):
         return self.__login_if_needed()
 
-    def get_recommend(self):
-        result = {}
-
-        if not self.__login_if_needed():
-            return result
-
-        if self.__recommend:
-            # update in 6:00 AM everyday
-            sec_6hours = 6 * 60 * 60
-            day_save = time.localtime(self.__recommend['time'] - sec_6hours)
-            day_curr = time.localtime(time.time() - sec_6hours)
-            if day_save.tm_yday == day_curr.tm_yday:
-                return self.__recommend.copy()
-
+    def __post(self, uri, req, timeout=5):
         for c in self.__session.cookies:
             if c.name == '__csrf':
-                uri, csrf = self.__uri_recommend + c.value, c.value
+                uri, csrf = uri + '?csrf_token=' + c.value, c.value
                 break
         else:
-            return result
+            return None
 
-        text = {'offset': 0, 'total': True, 'limit': 30, 'csrf_token': csrf}
+        req = req.copy()
+        req['csrf_token'] = csrf
+        req = self.__encrypted_request(req)
+
         try:
-            r = self.__session.post(uri, data=self.__encrypted_request(text),
-                                    headers=self.__headers, timeout=self.__default_timeout)
+            r = self.__session.post(uri, data=req, headers=self.__headers, timeout=timeout)
             r.raise_for_status()
             r.encoding = 'utf-8'
             r = json.loads(r.text)
         except Exception as e:
-            print('NetEase.get_recommend(E): {0}'.format(e))
-            return result
+            return None
+
+        if not 'code' in r or r['code'] < 200 or r['code'] > 299:
+            return None
+
+        return r
+
+    def get_recommend(self):
+        if self.__recommend:
+            # update in 6:00 AM everyday
+            sec6hour = 6 * 60 * 60
+            day_save = time.localtime(self.__recommend['time'] - sec6hour)
+            day_curr = time.localtime(time.time() - sec6hour)
+            if day_save.tm_year == day_curr.tm_year and day_save.tm_yday == day_curr.tm_yday:
+                return self.__recommend['recommend'].copy()
+
+        req = {'offset': 0, 'total': True, 'limit': 30}
+        r = self.__post(self.__uri_recommend, req, timeout=self.__default_timeout)
+        if not r:
+            return None
 
         r['time'] = time.time()
         self.__recommend = r
 
         print('NetEase.get_recommend(I): recommend refreshed')
 
-        return r.copy()
+        return r['recommend'].copy()
 
-    def get_songs_url(self, music_ids, bit_rate=320000):
-        result = []
+    def get_playlists(self):
+        if not self.__login:
+            return None
 
-        if not self.__login_if_needed():
-            return result
+        req = {'offset': 0, 'uid': self.__login['profile']['userId'], 'limit': 999}
+        r = self.__post(self.__uri_playlist, req, timeout=self.__default_timeout)
+        if not r:
+            return None
 
-        for c in self.__session.cookies:
-            if c.name == '__csrf':
-                uri, csrf = self.__uri_songs + c.value, c.value
-                break
-        else:
-            return result
+        print('NetEase.get_playlists(I): playlists refreshed')
 
-        text = {'ids': music_ids, 'br': bit_rate, 'csrf_token': csrf}
-        try:
-            r = self.__session.post(uri, data=self.__encrypted_request(text),
-                                    headers=self.__headers, timeout=self.__default_timeout)
-            r.raise_for_status()
-            r.encoding = 'utf-8'
-            r = json.loads(r.text)
-        except Exception as e:
-            print('NetEase.get_songs_url(E): {0}'.format(e))
-            return result
+        return r['playlist']
 
-        if (not 'code' in r) or (r['code'] != 200) or (not 'data' in r):
-            return result
+    def get_playlist_detail(self, playlist_id, n=999):
+        req = {'offset': 0, 'total': True, 'id': playlist_id, 'limit': 999, 'n': n}
+        r = self.__post(self.__uri_playlist_detail, req, timeout=self.__default_timeout)
+        if not r:
+            return None
+
+        return r['playlist']['tracks']
+
+    def get_musics_url(self, music_ids, bit_rate=320000):
+        req = {'ids': music_ids, 'br': bit_rate}
+        r = self.__post(self.__uri_musics, req, timeout=self.__default_timeout)
+        if not r:
+            return None
 
         return r['data']
 
@@ -270,7 +278,6 @@ if __name__ == '__main__':
     import sys
     import vlc
     import readline
-    import math
     from getpass import getpass
 
     net_ease = NetEase(os.path.curdir)
@@ -281,25 +288,25 @@ if __name__ == '__main__':
 
     help_str = '''
 commands:
-    h, help                 display this comment
-    l, list                 display play list
-    p, play <id>            play song pointer by id
+    h,  help                display this comment
+    l,  list                display play list
+    l,  list <id>           display play list detail pointer by id
+    p,  play <id>           play song pointer by id
     pn, pnext               play next song
     pp, pprev               play prev song
-    P, pause                pause playing music
-    r, resume               resume paused music
-    s, stop                 stop playing music
+    P,  pause               pause playing music
+    r,  resume              resume paused music
+    s,  stop                stop playing music
     v+                      increase volume
     v-                      decrease volume
     v=                      display current volume
-    q, quit
+    q,  quit
     '''
-
     print(help_str)
 
+    playlist = None
     player = None
-    recommend = net_ease.get_recommend()['recommend']
-    mid = -9999
+    mid = -999
 
     while True:
         try:
@@ -315,12 +322,41 @@ commands:
             print(help_str)
 
         elif cmd == 'list' or cmd == 'l':
-            recommend = net_ease.get_recommend()['recommend']
-            for i in range(len(recommend)):
+            recommends = net_ease.get_recommend()
+            playlist_details = []
+            playlists = net_ease.get_playlists()
+            for l in playlists:
+                playlist_details.append(net_ease.get_playlist_detail(l['id'], l['trackCount']))
+
+            for i in range(len(playlists) + 1):
+                if i < len(playlists):
+                    name = playlists[i]['name']
+                    count = playlists[i]['trackCount']
+                else:
+                    name = '每日推荐'
+                    count = len(recommends)
+                pad = 50 - len(name)
+                for s in name:
+                    if ord(s) > 127:
+                        pad -= 1
+                print('% 4d' % i, name, ' ' * pad, count)
+
+        elif cmd.startswith('list') or (cmd[0] == 'l' and len(cmd) > 1 and cmd[1].isspace()):
+            i = int(cmd[2:]) if cmd[1].isspace() else int(cmd[4:])
+            if i < 0 or i > len(playlist_details) + 1:
+                print('invalid param')
+            playlist = playlist_details[i] if i < len(playlist_details) else recommends
+            if player:
+                player.release()
+                player = None
+
+            for i in range(len(playlist)):
                 end = '\n'
                 if not i % 2:
-                    end = ' ' * (50 - len(recommend[i]['name']))
-                print('% 4d' % i, recommend[i]['name'], end=end)
+                    end = ' ' * (50 - len(playlist[i]['name']))
+                print('% 4d' % i, playlist[i]['name'], end=end)
+            if len(playlist) % 2:
+                print()
 
         elif cmd.startswith('play') or (cmd[0] == 'p' and len(cmd) > 1 and cmd[1].isspace()):
             mid = int(cmd[2:]) if cmd[1].isspace() else int(cmd[4:])
@@ -380,28 +416,28 @@ commands:
 
 
         # paly
-        if not recommend:
+        if not playlist:
             mid = mid_prev
             continue
 
         if mid != mid_prev:
-            mid = mid % len(recommend)
+            mid = mid % len(playlist)
             if mid == mid_prev:
-                print('same song[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+                print('same song[{0}]:\nname={1}\nurl={2}'.format(mid, playlist[mid]['name'], url))
                 continue
 
             if player:
                 player.release()
                 player = None
 
-            url = net_ease.get_songs_url([recommend[mid]['id']])[0]['url']
+            url = net_ease.get_musics_url([playlist[mid]['id']])[0]['url']
             player = vlc.MediaPlayer(url)
             if not player:
                 print('can not create player')
                 mid = mid_prev
                 continue
             if player.play() == 0:
-                print('start play[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+                print('start play[{0}]:\nname={1}\nurl={2}'.format(mid, playlist[mid]['name'], url))
             else:
-                print('faild play[{0}]:\nname={1}\nurl={2}'.format(mid, recommend[mid]['name'], url))
+                print('faild play[{0}]:\nname={1}\nurl={2}'.format(mid, playlist[mid]['name'], url))
                 mid = mid_prev
