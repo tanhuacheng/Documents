@@ -297,8 +297,10 @@ commands:
     P,  pause               pause playing music
     r,  resume              resume paused music
     s,  stop                stop playing music
-    v+                      increase volume
-    v-                      decrease volume
+    v+                      increase volume by 1 step
+    v++                     increase volume by 10 step
+    v-                      decrease volume by 1 step
+    v--                     decrease volume by 10 step
     v=                      display current volume
     q,  quit
     '''
@@ -337,7 +339,7 @@ commands:
                     count = len(recommends)
                 pad = 50 - len(name)
                 for s in name:
-                    if ord(s) > 127:
+                    if ord(s) > int('4dff', 16) and ord(s) < int('9fa6', 16):
                         pad -= 1
                 print('% 4d' % i, name, ' ' * pad, count)
 
@@ -353,7 +355,11 @@ commands:
             for i in range(len(playlist)):
                 end = '\n'
                 if not i % 2:
-                    end = ' ' * (50 - len(playlist[i]['name']))
+                    pad = 50 - len(playlist[i]['name'])
+                    for s in playlist[i]['name']:
+                        if ord(s) > int('4dff', 16) and ord(s) < int('9fa6', 16):
+                            pad -= 1
+                    end = ' ' * pad
                 print('% 4d' % i, playlist[i]['name'], end=end)
             if len(playlist) % 2:
                 print()
