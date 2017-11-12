@@ -351,6 +351,7 @@ commands:
             if player:
                 player.release()
                 player = None
+            mid = -999
 
             for i in range(len(playlist)):
                 end = '\n'
@@ -426,7 +427,7 @@ commands:
             mid = mid_prev
             continue
 
-        if mid != mid_prev:
+        if mid != mid_prev and mid != -999:
             mid = mid % len(playlist)
             if mid == mid_prev:
                 print('same song[{0}]:\nname={1}\nurl={2}'.format(mid, playlist[mid]['name'], url))
