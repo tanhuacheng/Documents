@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-void* EqzInit (int rate, bool twopass, const eqz_preset_t* preset);
+void* EqzInit (int rate, bool use_vlc_freqs, bool use_twopass, const eqz_preset_t* preset);
 
 void EqzFilter(void* inst, float *out, float *in, int samples, int channels);
 

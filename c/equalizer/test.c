@@ -12,22 +12,23 @@ int main(int argc, char *argv[])
     #define N 1024
 
     eqz_preset_t preset = {
-        "user", 10, 12.f,
+        "", 10, 12.f,
         // { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-        { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, 3.0f, 3.0f, 3.0f },
+        // 31.25, 62.5, 125, 250, 500, 1000, 2000, 4000, 8000, 16000
+        {-3.0f, -2.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.5f, 3.0f, 3.0f, 3.0f },
     };
 
     // void* eqz = EqzInit(rate, true, &eqz_preset_10b[0]);
-    void* eqz = EqzInit(rate, true, &preset);
+    void* eqz = EqzInit(rate, false, true, &preset);
 
     float in[N];
     float out[N];
 
-    #define M 20
-    float f = 200;
-    float g = powf(2, log2f(M) / 20);
+    #define M 40
+    float f = 50;
+    float g = powf(2, log2f(80) / M);
 
-    for (int i = 0; i < M; i++) {
+    for (int i = 0; i < M + 1; i++) {
         for (int j = 0; j < N; j++) {
             in[j] = 1417 * sin(2*M_PI*f*j/rate);
         }

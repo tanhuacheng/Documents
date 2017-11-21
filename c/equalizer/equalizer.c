@@ -59,7 +59,7 @@ struct filter_sys_t
  *****************************************************************************/
 typedef struct
 {
-    int   i_band;
+    int i_band;
 
     struct
     {
@@ -68,7 +68,6 @@ typedef struct
         float f_beta;
         float f_gamma;
     } band[EQZ_BANDS_MAX];
-
 } eqz_config_t;
 
 /* Equalizer coefficient calculation function based on equ-xmms */
@@ -134,12 +133,12 @@ static inline float EqzConvertdB( float db )
     return EQZ_IN_FACTOR * ( powf( 10.0f, db / 20.0f ) - 1.0f );
 }
 
-void* EqzInit (int rate, bool twopass, const eqz_preset_t* preset)
+void* EqzInit (int rate, bool use_vlc_freqs, bool use_twopass, const eqz_preset_t* preset)
 {
     struct filter_sys_t *p_sys = calloc(1, sizeof(*p_sys));
 
     eqz_config_t cfg;
-    EqzCoeffs(rate, 1.0f, false, &cfg);
+    EqzCoeffs(rate, 1.0f, use_vlc_freqs, &cfg);
 
     /* Create the static filter config */
     p_sys->i_band = cfg.i_band;
@@ -155,7 +154,7 @@ void* EqzInit (int rate, bool twopass, const eqz_preset_t* preset)
     }
 
     /* Filter dyn config */
-    p_sys->b_2eqz = twopass;
+    p_sys->b_2eqz = use_twopass;
 
     if(preset->f_preamp < -20.f )
         p_sys->f_gamp = .1f;
@@ -256,8 +255,8 @@ void EqzClean (void* inst)
     free(p_sys->f_alpha);
     free(p_sys->f_beta);
     free(p_sys->f_gamma);
-
     free(p_sys->f_amp);
+    free(p_sys);
 }
 
 // end of file
