@@ -3,4 +3,7 @@
 *.out
 *~
 *#
+*.swn
+*.swo
+*.swp
 tags

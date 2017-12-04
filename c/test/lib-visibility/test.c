@@ -20,6 +20,15 @@ int main(int argc, char *argv[])
     foo();
     bar();
 
+    // void dym (void);
+    // dym();
+
+    void dym1 (void);
+    dym1();
+
+    void dym2 (void);
+    dym2();
+
     return 0;
 }
 
