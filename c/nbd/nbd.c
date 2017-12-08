@@ -1,72 +1,57 @@
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <math.h>
+#include "goertzel.h"
+#include "zero-cross.h"
 
-static void gen_sinf (int16_t *in, int f, int n)
-{
-    for (int i = 0; i < n; i++) {
-        in[i] = 1000 * sinf(2*M_PI*f*i/8000) + 0.1;
-    }
-}
+#define SAMPLE_RATE 8000
 
-static void print (const int16_t *in, int n)
+static void generate (int16_t *in, int f, int n)
 {
+    memset(in, 0, 2 * n);
     for (int i = 0; i < n; i++) {
-        if (!(i%16)) printf("\n");
-        printf("% 4d ", in[i]);
+        in[i] += 4096 * sinf(0.5*M_PI*f*i / SAMPLE_RATE);
+        in[i] += 8192 * sinf(2*M_PI*f*i / SAMPLE_RATE);
+        // in[i] += 8192 * sinf(4*M_PI*f*i / SAMPLE_RATE);
     }
-    printf("\n");
 }
 
 static float nbd (const int16_t *in, int n)
 {
-    int i = 1;
-    for (; i < n; i++) {
-        if ((in[i] ^ in[i - 1]) & 0x8000)  {
-            break;
+    float di = (float)SAMPLE_RATE / (2 * n);
+    int zcn = zero_cross_s(in, n, 64);
+    float fc = /*zero_cross_s(in, n, 64)*/ zcn * di;
+    float pc = goertzel_filter(in, n, fc, SAMPLE_RATE);
+
+    di *= 2.0f;
+    for (; di > 0.1f; di *= 0.54) {
+        float pl = goertzel_filter(in, n, fc - di, SAMPLE_RATE);
+        float pr = goertzel_filter(in, n, fc + di, SAMPLE_RATE);
+
+        float fm, pm;
+        if (pl > pr) {
+            fm = fc - di;
+            pm = pl;
+        } else {
+            fm = fc + di;
+            pm = pr;
+        }
+
+        if (pm > pc) {
+            fc = fm;
+            pc = pm;
         }
     }
 
-    float p[n];
-    int z[n];
-    int c = 0;
-
-    int b = i;
-    p[c] = 0;
-
-    float sp = 0;
-    int sz = 0;
-
-    for (; i < n - 1; i++) {
-        p[c] += in[i] * in[i];
-        if ((in[i] ^ in[i + 1]) & 0x8000) {
-            z[c] = i + 1 - b;
-            b = i + 1;
-            sp += p[c];
-            sz += z[c];
-            c++;
-            p[c] = 0;
-        }
+    float s = 0;
+    for (int i = 0; i < n; i++) {
+        s += in[i] * in[i];
     }
+    printf("%.2f: %.2f, %.2f\n", fc, 2*pc/n, s);
 
-    float ap = sp / c;
-    float az = sz / c;
-
-    float ep = 0;
-    float ez = 0;
-
-    for (int i = 0; i < c; i++) {
-        printf("%.2f, %d\n", p[i], z[i]);
-        ep += powf(p[i] - ap, 2);
-        ez += powf(z[i] - az, 2);
-    }
-
-    ep /= c;
-    ez /= c;
-
-    printf("%.6f %.6f\n", sqrtf(sqrtf(ep / (ap * ap))), sqrtf(ez / (az * az)));
-
-    return 0;
+    return (2*pc/n) / s;
 }
 
 int main(int argc, char *argv[])
@@ -74,13 +59,23 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    #define N 80
+    #define N 160
 
     int16_t in[N];
-    gen_sinf(in, 2000, N);
+    for (int i = 3500; i <= 3500; i += 200) {
+        generate(in, i, N);
 
-    print(in, N);
-    nbd(in, N);
+    // for (int i = -10; i < 11; i++) {
+    //     printf("%.2f\n", goertzel_filter(in, N, 975+i, 8000));
+    // }
+
+    float s = 0;
+    for (int i = 0; i < N; i++) {
+        s += in[i] * in[i];
+    }
+        // printf("%.2f %.2f\n", s, goertzel_filter(in, N, 1000, 8000));
+        printf("%d: %.2f\n", i, nbd(in, N));
+    }
 
     return 0;
 }
