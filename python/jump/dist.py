@@ -87,6 +87,8 @@ if __name__ == '__main__':
     #  sys.exit()
 
 
+    last_board_l, last_board_r = 0, 0
+
     board_w = 0
     width_cnt = 0
     for i in range(0, h, 2):
@@ -129,6 +131,12 @@ if __name__ == '__main__':
             else:
                 board_x = 0.8*board_x + 0.2*((board_l + board_r)/2)
 
+            if last_board_l and last_board_r and (abs(board_l - last_board_l) > 40 or
+                    abs(board_r - last_board_r) > 40):
+                break
+
+            last_board_l, last_board_r = board_l, board_r
+
             width = board_r - board_l + 1
             if width > board_w + 20:
                 board_w = width
@@ -145,8 +153,8 @@ if __name__ == '__main__':
     show_pixel(token_x, token_y, 10)
     show_pixel(board_x, board_y, 10)
 
-    #  plt.imshow(img)
-    #  plt.show()
+    plt.imshow(img)
+    plt.show()
 
     dist = math.sqrt((token_x - board_x)**2 + (token_y - board_y)**2)
     print(int(dist*1.383))
