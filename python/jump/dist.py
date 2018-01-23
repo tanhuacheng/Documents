@@ -9,7 +9,7 @@ import math
 
 
 def color_diff(p1, p2):
-    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2 + (p1[2] - p2[2])**2)
+    return math.sqrt(sum(map(lambda x1, x2: (x1 - x2)**2, p1[:3], p2[:3])))
 
 def show_pixel(x, y, n=5):
     for i in range(n):
@@ -36,6 +36,7 @@ def is_shadow(p):
 
     return False
 
+
 if __name__ == '__main__':
     img = Image.open(os.path.join(os.path.join(os.path.curdir, 'screen'), 'screen.png'))
     w, h = img.size
@@ -44,11 +45,7 @@ if __name__ == '__main__':
     board_x, board_y = 0, 0
 
     token_xs = []
-
-    for i in range(0, h, 2):
-        if i < h/3:
-            continue
-
+    for i in range(h//3, h, 2):
         token_l, token_r = 0, 0
 
         for j in range(0, w, 2):
@@ -106,7 +103,7 @@ if __name__ == '__main__':
             if abs(x - token_x) < 45:
                 continue
             p = img.getpixel((x, i))
-            if color_diff(p, base) > 10:
+            if color_diff(p, base) > 20:
                 show_pixel(x, i)
                 board_r = x
                 break
@@ -120,7 +117,7 @@ if __name__ == '__main__':
                     continue
 
                 p = img.getpixel((j, i))
-                if color_diff(p, base) <= 10 or is_shadow(p):
+                if color_diff(p, base) <= 20 or is_shadow(p):
                     show_pixel(j, i)
                     board_l = j
                     break
