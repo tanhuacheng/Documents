@@ -1,4 +1,5 @@
 from app import db
+from hashlib import md5
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,6 +24,9 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User %r>' % (self.nickname)
+
+    def avatar(self, size):
+        return 'http://www.gravatar.com/avatar/' + md5(str(self.email).encode()).hexdigest() + '?d=mm&s=' + str(size)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
