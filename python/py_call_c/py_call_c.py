@@ -16,12 +16,20 @@ lib = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), 'libtest.so'))
 # threading.local will not survive across different callbacks, even when those calls are made from
 # the same C thread.
 
-CB_FUNC = CFUNCTYPE(None)
+def foo(bar):
+    print('py: foo', bar.x, bar.y)
 
-def foo():
-    print('py: foo')
+CB_FUNC = CFUNCTYPE(None, py_object)
+func = CB_FUNC(foo)
 
-print(lib.foo(CB_FUNC(foo)))
+class Bar(object):
+    def __init__(self):
+        self.x = 1
+        self.y = 2
+
+bar = Bar()
+
+lib.foo(func, py_object(bar))
 
 import time
 time.sleep(600)

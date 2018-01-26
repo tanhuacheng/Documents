@@ -2,21 +2,25 @@
 #include <pthread.h>
 #include <unistd.h>
 
+static void *test_arg = NULL;
+
 static void* thread_test (void* arg)
 {
-    void (*cb) (void) = arg;
+    void (*cb) (void*) = arg;
 
     while (1) {
-        cb();
+        cb(test_arg);
         sleep(1);
     }
 
     return NULL;
 }
 
-int foo (void (*cb) (void))
+int foo (void (*cb) (void*), void *arg)
 {
-    printf("c: %s\n", __func__);
+    test_arg = arg;
+
+    printf("c: %s %ld\n", __func__, (long)arg);
     pthread_create(&(pthread_t){0}, NULL, thread_test, cb);
 
     return 0x55;
