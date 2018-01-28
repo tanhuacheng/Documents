@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style type="text/css">
+div
+{
+    width:800;
+    height:256;
+    overflow: scroll;
+}
+</style>
+
+<audio controls autoplay loop src="{{ albums[0]['musics'][1]['url'] }}" id="player"></audio>
+{% for album in albums %}
+<h2>{{ album['name'] }}</h2>
+<div>
+    {% for music in album['musics'] %}
+    <ul>
+        <img src="{{ music['picUrl'] }}" width="32" height="32" align="absmiddle"/>
+        <button style="height:32;width:540"
+                onclick="document.getElementById('player').src='{{ music['url'] }}'"/>
+        {{ music['name'] }}
+        </button>
+    </ul>
+    {% endfor %}
+</div>
+{% endfor %}
+<hr>
+{% endblock %}

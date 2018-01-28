@@ -1,10 +1,10 @@
 #!/bin/bash
 
-device='3DN4C16804007869'
+device='d33cc5cb'
 
 while [[ 1 ]]; do
     ./screen-cap.sh
-    d=$(./dist.py)
+    d=$(./dist-czk.py)
 
     echo $d
     r=$(adb -s $device shell input swipe 200 200 210 210 $d)
