@@ -1,20 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style type="text/css">
-div
-{
-    max-height:256;
-    overflow-y: scroll;
-    overflow-x: hidden;
-}
-</style>
 <a href="{{ url_for('refresh') }}">刷新</a><br><hr>
-<audio controls autoplay loop src="{{ albums[0]['musics'][1]['url'] }}" id="player"></audio>
-{% set color_flag = False %}
+<audio controls autoplay loop src="{{ albums[0]['musics'][1]['url'] }}" id="player"></audio><hr>
+<div style="max-height:344; overflow: auto">
 {% for album in albums %}
-<h2>{{ album['name'] }}</h2>
-<div>
+{% set color_flag = False %}
+<nav style="float: left;">
+<h2>【{{ album['name'] }}】</h2>
+<div style="overflow-y: scroll; max-height:254;">
     {% for music in album['musics'] %}
         <button style="height:36; width:540; text-align:left; padding-left:0px; color:#ffffff;
                 background-color:{{ '#262626' if color_flag else '#4d4d4d' }}; border:none;"
@@ -26,5 +20,8 @@ div
         <br>
     {% endfor %}
 </div>
+</nav>
 {% endfor %}
+</div>
+<hr>
 {% endblock %}

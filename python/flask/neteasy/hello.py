@@ -35,6 +35,10 @@ for l in playlists:
 @app.route('/')
 @app.route('/index')
 def index():
+    global recommends
+    global playlists
+    global playlist_details
+
     albums = []
 
     album = { 'name': '每日推荐', 'musics': [] }
@@ -43,22 +47,21 @@ def index():
             music = {}
             music['name'] = r['name']
             music['picUrl'] = r['album']['picUrl']
-            #  music['url'] = ne.get_musics_url([r['id']])[0]['url']
             music['url'] = r['url']
             album['musics'].append(music)
     albums.append(album)
 
     try:
-        album = { 'name': playlists[0]['name'], 'musics': [] }
-        for r in playlist_details[0]:
-            if r['url']:
-                music = {}
-                music['name'] = r['name']
-                music['picUrl'] = r['al']['picUrl']
-                #  music['url'] = ne.get_musics_url([r['id']])[0]['url']
-                music['url'] = r['url']
-                album['musics'].append(music)
-        albums.append(album)
+        for i in range(len(playlists)):
+            album = { 'name': playlists[i]['name'], 'musics': [] }
+            for r in playlist_details[i]:
+                if r['url']:
+                    music = {}
+                    music['name'] = r['name']
+                    music['picUrl'] = r['al']['picUrl']
+                    music['url'] = r['url']
+                    album['musics'].append(music)
+            albums.append(album)
     except:
         pass
 
@@ -87,6 +90,7 @@ def refresh():
             except:
                 pass
         playlist_details.append(detail)
+
     return redirect(url_for('index'))
 
 if __name__ == "__main__":
