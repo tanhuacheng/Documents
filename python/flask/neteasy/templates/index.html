@@ -4,26 +4,27 @@
 <style type="text/css">
 div
 {
-    width:800;
-    height:256;
-    overflow: scroll;
+    max-height:256;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 </style>
-
+<a href="{{ url_for('refresh') }}">刷新</a><br><hr>
 <audio controls autoplay loop src="{{ albums[0]['musics'][1]['url'] }}" id="player"></audio>
+{% set color_flag = False %}
 {% for album in albums %}
 <h2>{{ album['name'] }}</h2>
 <div>
     {% for music in album['musics'] %}
-    <ul>
-        <img src="{{ music['picUrl'] }}" width="32" height="32" align="absmiddle"/>
-        <button style="height:32;width:540"
-                onclick="document.getElementById('player').src='{{ music['url'] }}'"/>
-        {{ music['name'] }}
+        <button style="height:36; width:540; text-align:left; padding-left:0px; color:#ffffff;
+                background-color:{{ '#262626' if color_flag else '#4d4d4d' }}; border:none;"
+                onclick="document.getElementById('player').src='{{ music['url'] }}'">
+            <img src="{{ music['picUrl'] }}" width="32" height="32" align="absmiddle"/>
+            {{ music['name'] }}
         </button>
-    </ul>
+        {% set color_flag = Flase if color_flag else True %}
+        <br>
     {% endfor %}
 </div>
 {% endfor %}
-<hr>
 {% endblock %}
