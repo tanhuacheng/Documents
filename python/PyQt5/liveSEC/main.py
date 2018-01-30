@@ -7,6 +7,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from config import *
 from navigation import Navigation
 from toolbar import ToolBar
+from music import Music
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -24,7 +25,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shortcut_ctrl_w = QtWidgets.QShortcut(QtGui.QKeySequence("CTRL+W"), self)
         self.shortcut_ctrl_w.activated.connect(QtCore.QCoreApplication.instance().quit)
 
-        self.container = QtWidgets.QMainWindow()
+        self.container = QtWidgets.QStackedWidget()
+        self.container_scene = QtWidgets.QPushButton('scene')
+        self.container_music = Music(self)
+        self.container.addWidget(self.container_scene)
+        self.container.addWidget(self.container_music)
+
         self.toolbar = ToolBar(self)
         self.navigation = Navigation(self)
 
@@ -45,11 +51,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_nav_item_pressed(self, item_id):
         if item_id == 'scene':
-            self.container_scene = QtWidgets.QPushButton('scene')
-            self.container.setCentralWidget(self.container_scene)
-        else:
-            self.container_music = QtWidgets.QPushButton('music')
-            self.container.setCentralWidget(self.container_music)
+            self.container.setCurrentWidget(self.container_scene)
+        elif item_id == 'music':
+            self.container.setCurrentWidget(self.container_music)
 
 
 if __name__ == '__main__':
