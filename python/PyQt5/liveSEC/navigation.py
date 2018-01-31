@@ -1,7 +1,9 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+
 from config import *
+from treewidget import TreeWidget
 
 
 class Navigation(QtWidgets.QMainWindow):
@@ -11,38 +13,7 @@ class Navigation(QtWidgets.QMainWindow):
         self.parent = parent
         self.setMaximumWidth(NAVIGATION_MAX_WIDTH)
 
-        self.tree = QtWidgets.QTreeWidget()
-        self.tree.setHeaderHidden(True)
-        self.tree.expandAll()
-        self.tree.setRootIsDecorated(False)
-        self.tree.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tree.setIndentation(12)
-        self.tree.hideColumn(1)
-        self.tree.setFocusPolicy(QtCore.Qt.NoFocus)
-
-        self.tree.setStyleSheet("""
-            QTreeWidget::item {
-                height: 48;
-            }
-            QTreeView::item:!has-children {
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 15px;
-                background-color:rgb(243,243,243,255);
-            }
-            QTreeView::item:!has-children:hover {
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 15px;
-                background:
-                    qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);
-            }
-            QTreeView::item:!has-children:selected {
-                color:lightgray;
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 15px;
-                /* background-color:rgb(30,39,45,255); */
-                background-color:rgb(49,68,77,255);
-            }
-        """)
+        self.tree = TreeWidget()
 
         self.items = []
         font = QtGui.QFont()
@@ -51,7 +22,7 @@ class Navigation(QtWidgets.QMainWindow):
             self.items.append(TreeWidgetItem(self.tree, config))
             self.items[-1].setFont(0, font)
 
-        self.current_item = self.items[0]
+        self.current_item = self.items[1]
         self.tree.setCurrentItem(self.current_item)
         self.current_item.update_icon()
         self.parent.on_nav_item_pressed(self.current_item.id)
