@@ -16,6 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle(APP_NAME)
         self.setWindowIcon(QtGui.QIcon(APP_ICON))
+        self.setMinimumSize(*WIN_SIZE)
 
         ag = QtWidgets.QDesktopWidget().availableGeometry()
         h = ag.height()
@@ -26,7 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             w = int(w*3/4 + 0.5)
             h = int(w*0.618 + 0.5)
-        self.setFixedSize(w, h)
+        self.resize(w, h)
 
         fg = self.frameGeometry()
         fg.moveCenter(ag.center())

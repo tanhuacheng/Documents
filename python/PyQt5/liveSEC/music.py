@@ -85,9 +85,9 @@ class Control(QtWidgets.QWidget):
 
         self.media_order_stack = QtWidgets.QStackedWidget()
         self.media_order_stack.setFixedSize(24, 24)
+        self.media_order_stack.addWidget(self.media_order_random)
         self.media_order_stack.addWidget(self.media_order_loop)
         self.media_order_stack.addWidget(self.media_order_repeat)
-        self.media_order_stack.addWidget(self.media_order_random)
 
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.media_prev)
@@ -101,69 +101,62 @@ class Control(QtWidgets.QWidget):
         self.play_time.setStyleSheet('color: #93A1A1; margin: 0px 0px 3px 0px;')
 
         self.play_progress = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.play_progress.setMinimumWidth(180)
+        self.play_progress.setTickPosition(QtWidgets.QSlider.TicksBothSides)
         self.play_progress.setStyleSheet('''
-    QSlider::add-page:Horizontal
-    {
-       background-color: rgb(87, 97, 106);
-       height:4px;
-    }
-    QSlider::sub-page:Horizontal
-    {
-        background-color:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(231,80,229, 255), stop:1 rgba(7,208,255, 255));
-        height:4px;
-     }
-    QSlider::groove:Horizontal
-    {
-        background:transparent;
-        height:6px;
-    }
-    QSlider::handle:Horizontal
-    {
-        height: 8;
-        width: 8;
-        border-image: url(./icones/control_progress_handle.png);
-        margin: -4 0px;
-    }
+            QSlider::groove:horizontal {
+                height: 8px;
+                border-radius: 2px;
+            }
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #c0d900, stop: 1 #3f4600);
+                border-radius: 2px;
+            }
+            QSlider::add-page:horizontal {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #c7d9d9, stop: 1 #404646);
+                border-radius: 2px;
+            }
+            QSlider::handle:horizontal {
+                background-color: #c0d900;
+                width: 8px;
+                height: 14px;
+                margin-top: -3px;
+                margin-bottom: -3px;
+                border-radius: 3px;
+            }
+            QSlider::handle:horizontal:hover {
+                background-color: #c7d9d9;
+            }
+            QSlider::handle:horizontal:pressed {
+                background-color: #dcefef;
+            }
         ''')
 
-#  /*
-#              QSlider {
-#                  background: transparent;
-#              }
-#              QSlider::add-page:horizontal {
-#                  background-color: #ff0000;
-#                  height: 8px;
-#              }
-#              QSlider::sub-page:horizontal {
-#                  background-color: #00ff00;
-#                  height: 1px;
-#              }
-#              QSlider::groove:horizontal {
-#                  /* background: transparent; */
-#                  height: 1px;
-#              }
-#              QSlider::handle:horizontal {
-#                  height: 13px;
-#                  width: 13px;
-#                  border-image: url('./icones/control_progress_handle.png');
-#                  /* margin: 0px -4px; */
-#              }
-#  */
         self.total_time = QtWidgets.QLabel('03:56')
         self.total_time.setStyleSheet('color: #93A1A1; margin: 0px 0px 3px 0px;')
 
         self.layout.addWidget(self.play_time)
-        self.layout.insertSpacing(7, 8)
+        self.layout.insertSpacing(7, 4)
         self.layout.addWidget(self.play_progress)
-        self.layout.insertSpacing(9, 8)
+        self.layout.insertSpacing(9, 4)
         self.layout.addWidget(self.total_time)
+
+        self.volume = PlayButton(32, (
+            './icones/control_playlist_3.png',
+            './icones/control_playlist_2.png',
+            './icones/control_playlist_1.png',
+        ))
+        self.layout.addWidget(self.volume)
+
         self.layout.addStretch()
 
         self.playlist = PlayButton(32, (
             './icones/control_playlist_3.png',
             './icones/control_playlist_2.png',
             './icones/control_playlist_1.png',
-            ))
+        ))
         self.layout.addWidget(self.playlist)
 
 

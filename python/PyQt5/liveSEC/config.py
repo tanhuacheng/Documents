@@ -5,7 +5,7 @@ icones_dir = os.path.join(os.path.curdir, 'icones')
 APP_NAME = 'liveSEC'
 APP_ICON = os.path.join(icones_dir, 'dog.png')
 
-WIN_SIZE = (1024, 633)
+WIN_SIZE = (768, 475)
 
 TOOLBAR_MAX_HEIGHT = 48
 NAVIGATION_MAX_WIDTH = 176
