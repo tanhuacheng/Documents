@@ -60,6 +60,27 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.widget = QtWidgets.QWidget()
         self.widget.setLayout(self.layout2)
+
+        self.navigation_fold = QtWidgets.QPushButton(self.widget)
+        self.navigation_fold.setText('<')
+        self.navigation_fold.setFixedSize(12, 32)
+        self.navigation_fold.setStyleSheet('''
+            QPushButton {
+                background-color: rgb(27, 29, 30, 112);
+                color: #8e9a9a;
+                border-radius: 2;
+            }
+            QPushButton:hover {
+                color: #b6c6c6;
+            }
+            QPushButton:pressed {
+                color: #dbefef;
+            }
+        ''')
+        self.navigation_fold.move(0, 0)
+        self.navigation_fold.clicked.connect(self.move_navigation_fold)
+        self.move_navigation_fold()
+
         self.setCentralWidget(self.widget)
 
     def on_nav_item_pressed(self, item_id):
@@ -70,6 +91,29 @@ class MainWindow(QtWidgets.QMainWindow):
         elif item_id == 'weather':
             self.container.setCurrentWidget(self.container_weather)
 
+    def move_navigation_fold(self, resize=False):
+        hfix = self.toolbar.height()
+        hnav = self.navigation.height()
+        wnav = self.navigation.width()
+
+        top = int(hfix + hnav/2 - self.navigation_fold.height()/2)
+        left = int(wnav - self.navigation_fold.width())
+
+        if resize:
+            self.navigation_fold.move(left if self.navigation_fold.frameGeometry().left() else 0, top)
+            return
+
+        if self.navigation_fold.frameGeometry().left():
+            self.navigation_fold.move(0, top)
+            self.navigation_fold.setText('>')
+            self.navigation.hide()
+        else:
+            self.navigation.show()
+            self.navigation_fold.setText('<')
+            self.navigation_fold.move(left, top)
+
+    def resizeEvent(self, event):
+        self.move_navigation_fold(True)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

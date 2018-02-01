@@ -78,7 +78,7 @@ class ControlBar(QtWidgets.QWidget):
 
         self.layout.addStretch(1)
         self.progress_bar = ProgressBar(config['progress-bar'])
-        self.layout.addWidget(self.progress_bar, 32)
+        self.layout.addWidget(self.progress_bar, 48)
 
         self.layout.addStretch(1)
         self.label_total_time = QtWidgets.QLabel('03:56')
