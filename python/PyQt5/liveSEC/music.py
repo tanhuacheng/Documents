@@ -1,6 +1,7 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+from config import *
 
 
 class Music(QtWidgets.QWidget):
@@ -17,7 +18,7 @@ class Music(QtWidgets.QWidget):
         self.layout1.addWidget(self.playlist)
         self.layout1.addWidget(self.lyric)
 
-        self.control = Control()
+        self.control = ControlBar(CONFIG_MUSIC['control-bar'])
 
         self.layout2 = QtWidgets.QVBoxLayout()
         self.layout2.setSpacing(0)
@@ -28,82 +29,113 @@ class Music(QtWidgets.QWidget):
         self.setLayout(self.layout2)
 
 
-class Control(QtWidgets.QWidget):
+class ControlBar(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
-
-        self.setFixedHeight(60)
+        self.config = config
+        self.setMinimumHeight(config['minimum-height'])
+        self.setMaximumHeight(config['maximum-height'])
         self.pal = QtGui.QPalette(self.palette())
-        self.pal.setColor(QtGui.QPalette.Background, QtGui.QColor(int('002B36', 16)))
-        self.setAutoFillBackground(True)
+        self.pal.setColor(QtGui.QPalette.Background, QtGui.QColor(config['background-color']))
         self.setPalette(self.pal)
-
-        self.media_prev = PlayButton(32, (
-            './icones/control_media_prev_3.png',
-            './icones/control_media_prev_2.png',
-            './icones/control_media_prev_1.png',
-            ))
-
-        self.media_play = PlayButton(32, (
-            './icones/control_media_play_3.png',
-            './icones/control_media_play_2.png',
-            './icones/control_media_play_1.png',
-            ))
-        self.media_pause = PlayButton(32, (
-            './icones/control_media_pause_3.png',
-            './icones/control_media_pause_2.png',
-            './icones/control_media_pause_1.png',
-            ))
-
-        self.media_next = PlayButton(32, (
-            './icones/control_media_next_3.png',
-            './icones/control_media_next_2.png',
-            './icones/control_media_next_1.png',
-            ))
-
-        self.media_order_loop = PlayButton(24, (
-            './icones/control_media_order_loop_3.png',
-            './icones/control_media_order_loop_2.png',
-            './icones/control_media_order_loop_1.png',
-            ))
-        self.media_order_repeat = PlayButton(24, (
-            './icones/control_media_order_repeat_3.png',
-            './icones/control_media_order_repeat_2.png',
-            './icones/control_media_order_repeat_1.png',
-            ))
-        self.media_order_random = PlayButton(24, (
-            './icones/control_media_order_random_3.png',
-            './icones/control_media_order_random_2.png',
-            './icones/control_media_order_random_1.png',
-            ))
-
-        self.media_play_pause = QtWidgets.QStackedWidget()
-        self.media_play_pause.setFixedSize(32, 32)
-        self.media_play_pause.addWidget(self.media_play)
-        self.media_play_pause.addWidget(self.media_pause)
-
-        self.media_order_stack = QtWidgets.QStackedWidget()
-        self.media_order_stack.setFixedSize(24, 24)
-        self.media_order_stack.addWidget(self.media_order_random)
-        self.media_order_stack.addWidget(self.media_order_loop)
-        self.media_order_stack.addWidget(self.media_order_repeat)
+        self.setAutoFillBackground(True)
 
         self.layout = QtWidgets.QHBoxLayout()
-        self.layout.addWidget(self.media_prev)
-        self.layout.addWidget(self.media_play_pause)
-        self.layout.addWidget(self.media_next)
-        self.layout.addWidget(self.media_order_stack)
-        self.layout.insertSpacing(3, 16)
-        self.layout.addStretch()
 
-        self.play_time = QtWidgets.QLabel('00:00')
-        self.play_time.setStyleSheet('color: #93A1A1; margin: 0px 0px 3px 0px;')
+        self.layout.addStretch(1)
+        self.button_prev = PushButton(config['button-prev'])
+        self.layout.addWidget(self.button_prev)
 
-        self.play_progress = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.play_progress.setMinimumWidth(180)
-        self.play_progress.setTickPosition(QtWidgets.QSlider.TicksBothSides)
-        self.play_progress.setStyleSheet('''
+        self.layout.addStretch(1)
+        self.stack_play_pause = QtWidgets.QStackedWidget()
+        self.stack_play_pause.setFixedSize(*config['stack-play-and-pause']['size'])
+        self.button_play = PushButton(config['stack-play-and-pause']['button-play'])
+        self.button_pause = PushButton(config['stack-play-and-pause']['button-pause'])
+        self.stack_play_pause.addWidget(self.button_play)
+        self.stack_play_pause.addWidget(self.button_pause)
+        self.layout.addWidget(self.stack_play_pause)
+
+        self.layout.addStretch(1)
+        self.button_next = PushButton(config['button-next'])
+        self.layout.addWidget(self.button_next)
+
+        self.layout.addStretch(2)
+        self.stack_order = QtWidgets.QStackedWidget()
+        self.stack_order.setFixedSize(*config['stack-order']['size'])
+        self.button_loop = PushButton(config['stack-order']['button-loop'])
+        self.button_repeat = PushButton(config['stack-order']['button-repeat'])
+        self.button_random = PushButton(config['stack-order']['button-random'])
+        self.stack_order.addWidget(self.button_loop)
+        self.stack_order.addWidget(self.button_repeat)
+        self.stack_order.addWidget(self.button_random)
+        self.layout.addWidget(self.stack_order)
+
+        self.layout.addStretch(8)
+        self.label_played_time = QtWidgets.QLabel('00:00')
+        self.label_played_time.setStyleSheet(config['label-played-time']['style-sheet'])
+        self.layout.addWidget(self.label_played_time)
+
+        self.layout.addStretch(1)
+        self.progress_bar = ProgressBar(config['progress-bar'])
+        self.layout.addWidget(self.progress_bar, 32)
+
+        self.layout.addStretch(1)
+        self.label_total_time = QtWidgets.QLabel('03:56')
+        self.label_total_time.setStyleSheet(config['label-total-time']['style-sheet'])
+        self.layout.addWidget(self.label_total_time)
+
+        self.layout.addStretch(2)
+        self.stack_volume = QtWidgets.QStackedWidget()
+        self.stack_volume.setFixedSize(*config['stack-volume']['size'])
+        self.button_volume_mute = PushButton(config['stack-volume']['button-volume-mute'])
+        self.button_volume_low = PushButton(config['stack-volume']['button-volume-low'])
+        self.button_volume_medium = PushButton(config['stack-volume']['button-volume-medium'])
+        self.button_volume_high = PushButton(config['stack-volume']['button-volume-high'])
+        self.stack_volume.addWidget(self.button_volume_mute)
+        self.stack_volume.addWidget(self.button_volume_low)
+        self.stack_volume.addWidget(self.button_volume_medium)
+        self.stack_volume.addWidget(self.button_volume_high)
+        self.layout.addWidget(self.stack_volume)
+
+        self.layout.addStretch(8)
+        self.button_lyric = PushButton(config['button-lyric'])
+        self.layout.addWidget(self.button_lyric)
+
+        self.layout.addStretch(1)
+        self.button_playlist = PushButton(config['button-playlist'])
+        self.layout.addWidget(self.button_playlist)
+
+        self.layout.addStretch(1)
+        self.setLayout(self.layout)
+
+
+class PushButton(QtWidgets.QPushButton):
+
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.setFixedSize(*config['size'])
+        self.setStyleSheet('''
+            QPushButton {
+                border:0px;
+                border-image: url(%s);
+            }
+            QPushButton:hover {
+                border-image: url(%s);
+            }
+            QPushButton:pressed {
+                border-image: url(%s)
+            }
+        ''' % config['border-images'])
+
+
+class ProgressBar(QtWidgets.QSlider):
+
+    def __init__(self, config):
+        super().__init__(QtCore.Qt.Horizontal)
+        self.config = config
+        self.setStyleSheet('''
             QSlider::groove:horizontal {
                 height: 8px;
                 border-radius: 2px;
@@ -133,51 +165,15 @@ class Control(QtWidgets.QWidget):
                 background-color: #dcefef;
             }
         ''')
-
-        self.total_time = QtWidgets.QLabel('03:56')
-        self.total_time.setStyleSheet('color: #93A1A1; margin: 0px 0px 3px 0px;')
-
-        self.layout.addWidget(self.play_time)
-        self.layout.insertSpacing(7, 4)
-        self.layout.addWidget(self.play_progress)
-        self.layout.insertSpacing(9, 4)
-        self.layout.addWidget(self.total_time)
-
-        self.volume = PlayButton(32, (
-            './icones/control_playlist_3.png',
-            './icones/control_playlist_2.png',
-            './icones/control_playlist_1.png',
-        ))
-        self.layout.addWidget(self.volume)
-
-        self.layout.addStretch()
-
-        self.playlist = PlayButton(32, (
-            './icones/control_playlist_3.png',
-            './icones/control_playlist_2.png',
-            './icones/control_playlist_1.png',
-        ))
-        self.layout.addWidget(self.playlist)
+        self.setStyle(self.ProxyStyle(self.style()))
 
 
-        self.setLayout(self.layout)
+    class ProxyStyle(QtWidgets.QProxyStyle):
 
+        def __init__(self, style=None):
+            super().__init__(style)
 
-class PlayButton(QtWidgets.QPushButton):
-
-    def __init__(self, size, icones):
-        super().__init__()
-
-        self.setFixedSize(size, size)
-        self.setStyleSheet('''
-            QPushButton {
-                border:0px;
-                border-image: url(%s);
-            }
-            QPushButton:hover {
-                border-image: url(%s);
-            }
-            QPushButton:pressed {
-                border-image: url(%s)
-            }
-        ''' % icones)
+        def styleHint(self, hint, *args, **kwargs):
+            if hint == QtWidgets.QStyle.SH_Slider_AbsoluteSetButtons:
+                return QtCore.Qt.LeftButton | QtCore.Qt.MidButton
+            return super().styleHint(hint, *args, **kwargs)
