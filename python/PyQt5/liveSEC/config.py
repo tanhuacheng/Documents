@@ -13,10 +13,10 @@ main_config = {
     'shortcut-quit': 'CTRL+W',
 
     'v-stretch-toolbar': 1,
-    'v-stretch-container': 12,
+    'v-stretch-container': 15,
 
     'h-stretch-navigation': 1,
-    'h-stretch-container': 8,
+    'h-stretch-container': 7,
 
     'toolbar': {
         'minimum-height': 48,
@@ -24,10 +24,9 @@ main_config = {
     },
 
     'navigation': {
-        'minimum-width': 150,
+        'minimum-width': 120,
 
         'tree': {
-            'indentation': 6,
             'style-sheet': '''
                 QTreeWidget {
                     background-color:rgb(239,239,239,255);
@@ -273,7 +272,7 @@ main_config = {
 
     'navigation-folder': {
         'minimum-height': 48,
-        'nav-sizefactor': 10,
+        'nav-sizefactor': 12,
 
         'style-sheet': '''
             QPushButton {

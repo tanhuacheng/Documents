@@ -9,13 +9,14 @@ class Navigation(QtWidgets.QWidget):
         super().__init__()
         self.config = config
         self.setMinimumWidth(config['minimum-width'])
-        self.item_pressed_event = None
+
+        self.callback_current_item_changed = None
 
         self.layout = QtWidgets.QGridLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.tree = self.TreeWidget(config['tree'])
-        self.tree.itemPressed.connect(self.on_item_pressed)
+        self.tree.itemSelectionChanged.connect(self.on_item_selection_changed)
 
         self.items = []
         for item_config in config['items']:
@@ -23,29 +24,25 @@ class Navigation(QtWidgets.QWidget):
             font = QtGui.QFont()
             font.setPixelSize(item_config['font-pixel-size'])
             self.items[-1].setFont(0, font)
+
         self.current_item = self.items[0]
         self.tree.setCurrentItem(self.current_item)
-        self.current_item.update_icon()
 
         self.layout.addWidget(self.tree, 0, 0, 1, 1)
         self.setLayout(self.layout)
 
-    def on_item_pressed(self, item, num):
-        if item != self.current_item:
-            self.current_item.update_icon()
-            item.update_icon()
-            self.current_item = item
-            if self.item_pressed_event:
-                self.item_pressed_event(self, item.config['id'])
+    def on_item_selection_changed(self):
+        self.current_item.update_icon()
+        self.current_item = self.tree.selectedItems()[0]
+        self.current_item.update_icon()
+        if self.callback_current_item_changed:
+            self.callback_current_item_changed(self, self.current_item.config['id'])
 
     def set_current_item(self, item_id):
         if item_id != self.current_item.config['id']:
             for item in self.items:
                 if item_id == item.config['id']:
                     self.tree.setCurrentItem(item)
-                    self.current_item.update_icon()
-                    item.update_icon()
-                    self.current_item = item
 
 
     class TreeWidget(QtWidgets.QTreeWidget):
@@ -56,9 +53,6 @@ class Navigation(QtWidgets.QWidget):
             self.setHeaderHidden(True)
             self.setRootIsDecorated(False)
             self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-            self.setAnimated(True)
-            self.setIndentation(config['indentation'])
-            self.setFocusPolicy(QtCore.Qt.NoFocus)
             self.setStyleSheet(config['style-sheet'])
 
 

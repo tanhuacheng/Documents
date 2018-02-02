@@ -41,7 +41,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hlayout.setSpacing(0)
 
         self.navigation = Navigation(config['navigation'])
-        self.navigation.item_pressed_event = self.on_navigation_item_pressed
         self.navigation.set_current_item('music')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
@@ -54,6 +53,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.container.addWidget(self.container_weather)
         self.container.setCurrentWidget(self.container_music)
 
+        self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed
+
         self.hlayout.addWidget(self.container, config['h-stretch-container'])
         self.vlayout.addLayout(self.hlayout, config['v-stretch-container'])
 
@@ -62,12 +63,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.navigation_folder = self.NavigationFolder(self.widget, config['navigation-folder'])
         self.navigation_folder.setText('<')
-        self.navigation_folder.move(1, 0)
-        self.navigation_folder.clicked.connect(self.move_navigation_folder)
+        self.navigation_folder.folded = False
+        self.navigation_folder.clicked.connect(self.on_navigation_folder_clicked)
 
         self.setCentralWidget(self.widget)
 
-    def on_navigation_item_pressed(self, obj, item_id):
+    def on_navigation_current_item_changed(self, obj, item_id):
         if item_id == 'scene':
             self.container.setCurrentWidget(self.container_scene)
         elif item_id == 'music':
@@ -75,48 +76,41 @@ class MainWindow(QtWidgets.QMainWindow):
         elif item_id == 'weather':
             self.container.setCurrentWidget(self.container_weather)
 
-    def move_navigation_folder(self, resize=False):
-        hide = self.navigation_folder.frameGeometry().left() < 1
-        if not resize:
-            if hide:
-                self.navigation.show()
-            else:
-                self.navigation.hide()
-
-        hfix = self.toolbar.height()
-        hnav = self.container.height()
-        wnav = self.navigation.width()
-
-        hb, wb = map(lambda x: x / self.config['navigation-folder']['nav-sizefactor'], (hnav, wnav))
-        hb = max(hb, self.config['navigation-folder']['minimum-height'])
-        if hb/4 > wb:
-            hb = wb*4
-        else:
-            wb = hb/4
-        hb, wb = map(int, (hb, wb))
-        self.navigation_folder.resize(wb, hb)
-
-        top = int(hfix + hnav/2 - hb/2)
-
-        if resize:
-            if hide:
-                self.navigation_folder.move(0, top)
-            else:
-                self.navigation_folder.move(int(wnav - wb), top)
-            return
-
-        if hide:
+    def on_navigation_folder_clicked(self):
+        if self.navigation_folder.folded:
+            self.navigation.show()
             self.navigation_folder.setText('<')
-            self.navigation_folder.move(int(wnav - wb), top)
         else:
+            self.navigation.hide()
             self.navigation_folder.setText('>')
-            self.navigation_folder.move(0, top)
+        self.navigation_folder.folded = not self.navigation_folder.folded
+        self.set_navigation_folder_geometry()
+
+    def set_navigation_folder_geometry(self):
+        if self.navigation_folder.folded:
+            winh, winw = self.container.height(), self.container.width()
+        else:
+            winh, winw = self.navigation.height(), self.navigation.width()
+
+        h, w = map(lambda x: x / self.config['navigation-folder']['nav-sizefactor'], (winh, winw))
+        h = max(h, self.config['navigation-folder']['minimum-height'])
+        if h/4 > w:
+            h = w*4
+        else:
+            w = h/4
+        h, w = map(int, (h, w))
+
+        self.navigation_folder.resize(w, h)
+
+        top = int(self.toolbar.height() + winh/2 - h/2)
+        left = int((winw - w) if not self.navigation_folder.folded else 0)
+        self.navigation_folder.move(left, top)
 
     def showEvent(self, event):
-        self.move_navigation_folder(True)
+        self.set_navigation_folder_geometry()
 
     def resizeEvent(self, event):
-        self.move_navigation_folder(True)
+        self.set_navigation_folder_geometry()
 
 
     class NavigationFolder(QtWidgets.QPushButton):
