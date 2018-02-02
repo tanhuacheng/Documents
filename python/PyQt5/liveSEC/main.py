@@ -17,69 +17,57 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(*config['minimum-size'])
 
         ag = QtWidgets.QDesktopWidget().availableGeometry()
-        h, w = ag.height(), ag.width()
+        w, h = map(lambda x: int(x*3/4), (ag.width(), ag.height()))
         if w*0.618 > h:
-            h = int(h*3/4 + 0.5)
             w = int(h/0.618 + 0.5)
         else:
-            w = int(w*3/4 + 0.5)
             h = int(w*0.618 + 0.5)
         self.resize(w, h)
         fg = self.frameGeometry()
         fg.moveCenter(ag.center())
         self.move(fg.topLeft())
 
-        self.shortcut_ctrl_w = QtWidgets.QShortcut(QtGui.QKeySequence("CTRL+W"), self)
-        self.shortcut_ctrl_w.activated.connect(QtCore.QCoreApplication.instance().quit)
+        self.shortcut_quit = QtWidgets.QShortcut(QtGui.QKeySequence(config['shortcut-quit']), self)
+        self.shortcut_quit.activated.connect(QtCore.QCoreApplication.instance().quit)
+
+        self.vlayout = QtWidgets.QVBoxLayout()
+        self.vlayout.setSpacing(0)
+        self.vlayout.setContentsMargins(0, 0, 0, 0)
+
+        self.toolbar = ToolBar(config['toolbar'])
+        self.vlayout.addWidget(self.toolbar, config['v-stretch-toolbar'])
+
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.setSpacing(0)
+
+        self.navigation = Navigation(config['navigation'])
+        self.navigation.item_pressed_event = self.on_navigation_item_pressed
+        self.navigation.set_current_item('music')
+        self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
-        self.container_scene = QtWidgets.QPushButton('scene')
-        self.container_music = Music(self, config['container']['music'])
-        self.container_weather = QtWidgets.QPushButton('weather')
+        self.container_scene = QtWidgets.QPushButton('scene')           # TODO
+        self.container_music = Music(config['container']['music'])
+        self.container_weather = QtWidgets.QPushButton('weather')       # TODO
         self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
         self.container.addWidget(self.container_weather)
+        self.container.setCurrentWidget(self.container_music)
 
-        self.toolbar = ToolBar(self, config['toolbar'])
-        self.navigation = Navigation(self, config['navigation'])
-
-        self.layout1 = QtWidgets.QHBoxLayout()
-        self.layout1.setSpacing(0)
-        self.layout1.addWidget(self.navigation)
-        self.layout1.addWidget(self.container)
-
-        self.layout2 = QtWidgets.QVBoxLayout()
-        self.layout2.setSpacing(0)
-        self.layout2.setContentsMargins(0, 0, 0, 0)
-        self.layout2.addWidget(self.toolbar)
-        self.layout2.addLayout(self.layout1)
+        self.hlayout.addWidget(self.container, config['h-stretch-container'])
+        self.vlayout.addLayout(self.hlayout, config['v-stretch-container'])
 
         self.widget = QtWidgets.QWidget()
-        self.widget.setLayout(self.layout2)
+        self.widget.setLayout(self.vlayout)
 
-        self.navigation_fold = QtWidgets.QPushButton(self.widget)
+        self.navigation_fold = self.NavigationFoldButton(self.widget, config['navigation-fold'])
         self.navigation_fold.setText('<')
-        self.navigation_fold.setFixedSize(12, 32)
-        self.navigation_fold.setStyleSheet('''
-            QPushButton {
-                background-color: rgb(27, 29, 30, 112);
-                color: #8e9a9a;
-                border-radius: 2;
-            }
-            QPushButton:hover {
-                color: #b6c6c6;
-            }
-            QPushButton:pressed {
-                color: #dbefef;
-            }
-        ''')
-        self.navigation_fold.move(0, 0)
+        self.navigation_fold.move(1, 0)
         self.navigation_fold.clicked.connect(self.move_navigation_fold)
-        self.move_navigation_fold()
 
         self.setCentralWidget(self.widget)
 
-    def on_nav_item_pressed(self, item_id):
+    def on_navigation_item_pressed(self, obj, item_id):
         if item_id == 'scene':
             self.container.setCurrentWidget(self.container_scene)
         elif item_id == 'music':
@@ -88,28 +76,55 @@ class MainWindow(QtWidgets.QMainWindow):
             self.container.setCurrentWidget(self.container_weather)
 
     def move_navigation_fold(self, resize=False):
+        hide = self.navigation_fold.frameGeometry().left() < 1
+        if not resize:
+            if hide:
+                self.navigation.show()
+            else:
+                self.navigation.hide()
+
         hfix = self.toolbar.height()
-        hnav = self.navigation.height()
+        hnav = self.container.height()
         wnav = self.navigation.width()
 
-        top = int(hfix + hnav/2 - self.navigation_fold.height()/2)
-        left = int(wnav - self.navigation_fold.width())
+        hb, wb = map(lambda x: x / self.config['navigation-fold']['nav-sizefactor'], (hnav, wnav))
+        hb = max(hb, self.config['navigation-fold']['minimum-height'])
+        if hb/4 > wb:
+            hb = wb*4
+        else:
+            wb = hb/4
+        hb, wb = map(int, (hb, wb))
+        self.navigation_fold.resize(wb, hb)
+
+        top = int(hfix + hnav/2 - hb/2)
 
         if resize:
-            self.navigation_fold.move(left if self.navigation_fold.frameGeometry().left() else 0, top)
+            if hide:
+                self.navigation_fold.move(0, top)
+            else:
+                self.navigation_fold.move(int(wnav - wb), top)
             return
 
-        if self.navigation_fold.frameGeometry().left():
-            self.navigation_fold.move(0, top)
-            self.navigation_fold.setText('>')
-            self.navigation.hide()
-        else:
-            self.navigation.show()
+        if hide:
             self.navigation_fold.setText('<')
-            self.navigation_fold.move(left, top)
+            self.navigation_fold.move(int(wnav - wb), top)
+        else:
+            self.navigation_fold.setText('>')
+            self.navigation_fold.move(0, top)
+
+    def showEvent(self, event):
+        self.move_navigation_fold(True)
 
     def resizeEvent(self, event):
         self.move_navigation_fold(True)
+
+
+    class NavigationFoldButton(QtWidgets.QPushButton):
+
+        def __init__(self, parent, config):
+            super().__init__(parent)
+            self.config = config
+            self.setStyleSheet(config['style-sheet'])
 
 
 if __name__ == '__main__':

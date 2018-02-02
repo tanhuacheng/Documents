@@ -10,17 +10,55 @@ main_config = {
     'app-name': 'liveSEC',
     'app-icon': os.path.join(icones_dir, 'app.png'),
     'minimum-size': (768, 475),
+    'shortcut-quit': 'CTRL+W',
+
+    'v-stretch-toolbar': 1,
+    'v-stretch-container': 12,
+
+    'h-stretch-navigation': 1,
+    'h-stretch-container': 8,
 
     'toolbar': {
-        'maximum-height': 48,
+        'minimum-height': 48,
+        'background-color': '#272930',
     },
 
     'navigation': {
-        'maximum-width': 176,
+        'minimum-width': 150,
+
+        'tree': {
+            'indentation': 6,
+            'style-sheet': '''
+                QTreeWidget {
+                    background-color:rgb(239,239,239,255);
+                }
+                QTreeWidget::item {
+                    height: 48;
+                }
+                QTreeView::item:!has-children {
+                    margin : 0px 0px 0px 0px;
+                    padding: 0px 0px 0px 6px;
+                    background-color:rgb(239,239,239,255);
+                }
+                QTreeView::item:!has-children:hover {
+                    margin : 0px 0px 0px 0px;
+                    padding: 0px 0px 0px 6px;
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e7effd, stop:1 #cbdaf1);
+                }
+                QTreeView::item:!has-children:selected {
+                    margin : 0px 0px 0px 0px;
+                    padding: 0px 0px 0px 6px;
+                    color:lightgray;
+                    background-color:rgb(27,29,30,255);
+                }
+            ''',
+        },
+
         'items': (
             {
                 'id': 'scene',
                 'text': '情景',
+                'font-pixel-size': 18,
                 'icones': {
                     'normal': os.path.join(icones_dir, 'nav_scene_normal.png'),
                     'active': os.path.join(icones_dir, 'nav_scene_active.png'),
@@ -30,6 +68,7 @@ main_config = {
             {
                 'id': 'music',
                 'text': '音乐',
+                'font-pixel-size': 18,
                 'icones': {
                     'normal': os.path.join(icones_dir, 'nav_music_normal.png'),
                     'active': os.path.join(icones_dir, 'nav_music_active.png'),
@@ -39,6 +78,7 @@ main_config = {
             {
                 'id': 'weather',
                 'text': '天气',
+                'font-pixel-size': 18,
                 'icones': {
                     'normal': os.path.join(icones_dir, 'nav_weather_normal.png'),
                     'active': os.path.join(icones_dir, 'nav_weather_active.png'),
@@ -132,6 +172,36 @@ main_config = {
                 },
 
                 'progress-bar': {
+                    'style-sheet': '''
+                        QSlider::groove:horizontal {
+                            height: 8px;
+                            border-radius: 2px;
+                        }
+                        QSlider::sub-page:horizontal {
+                            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #c0d900, stop: 1 #3f4600);
+                            border-radius: 2px;
+                        }
+                        QSlider::add-page:horizontal {
+                            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #c7d9d9, stop: 1 #404646);
+                            border-radius: 2px;
+                        }
+                        QSlider::handle:horizontal {
+                            background-color: #c0d900;
+                            width: 8px;
+                            height: 14px;
+                            margin-top: -3px;
+                            margin-bottom: -3px;
+                            border-radius: 3px;
+                        }
+                        QSlider::handle:horizontal:hover {
+                            background-color: #c7d9d9;
+                        }
+                        QSlider::handle:horizontal:pressed {
+                            background-color: #dcefef;
+                        }
+                    ''',
                 },
 
                 'label-total-time': {
@@ -199,6 +269,27 @@ main_config = {
                 },
             },
         },
+    },
+
+    'navigation-fold': {
+        'minimum-height': 48,
+        'nav-sizefactor': 10,
+
+        'style-sheet': '''
+            QPushButton {
+                background-color: rgb(27, 29, 30, 64);
+                color: #8e9a9a;
+                border-radius: 2;
+            }
+            QPushButton:hover {
+                background-color: rgb(27, 29, 30, 128);
+                color: #b6c6c6;
+            }
+            QPushButton:pressed {
+                background-color: rgb(27, 29, 30, 192);
+                color: #dbefef;
+            }
+        ''',
     },
 }
 

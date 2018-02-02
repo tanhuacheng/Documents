@@ -1,13 +1,15 @@
 # -*- coding:utf-8
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui
 
 
-class ToolBar(QtWidgets.QMainWindow):
+class ToolBar(QtWidgets.QWidget):
 
-    def __init__(self, parent, config):
+    def __init__(self, config):
         super().__init__()
-        self.parent = parent
         self.config = config
-        self.setMaximumHeight(config['maximum-height'])
-        self.setStyleSheet('background-color:rgb(192, 192, 192, 255);')
+        self.setMinimumHeight(config['minimum-height'])
+        self.pal = QtGui.QPalette(self.palette())
+        self.pal.setColor(QtGui.QPalette.Background, QtGui.QColor(config['background-color']))
+        self.setPalette(self.pal)
+        self.setAutoFillBackground(True)

@@ -3,86 +3,73 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 
-class Navigation(QtWidgets.QMainWindow):
+class Navigation(QtWidgets.QWidget):
 
-    def __init__(self, parent, config):
+    def __init__(self, config):
         super().__init__()
-        self.parent = parent
         self.config = config
-        self.setMaximumWidth(config['maximum-width'])
+        self.setMinimumWidth(config['minimum-width'])
+        self.item_pressed_event = None
 
-        self.tree = TreeWidget()
+        self.layout = QtWidgets.QGridLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+        self.tree = self.TreeWidget(config['tree'])
+        self.tree.itemPressed.connect(self.on_item_pressed)
 
         self.items = []
-        font = QtGui.QFont()
-        font.setPixelSize(18)
-        for config in config['items']:
-            self.items.append(TreeWidgetItem(self.tree, config))
+        for item_config in config['items']:
+            self.items.append(self.TreeWidgetItem(self.tree, item_config))
+            font = QtGui.QFont()
+            font.setPixelSize(item_config['font-pixel-size'])
             self.items[-1].setFont(0, font)
-
-        self.current_item = self.items[1]
+        self.current_item = self.items[0]
         self.tree.setCurrentItem(self.current_item)
         self.current_item.update_icon()
-        self.parent.on_nav_item_pressed(self.current_item.id)
 
-        self.tree.itemPressed.connect(self.on_item_pressed)
-        self.setCentralWidget(self.tree)
+        self.layout.addWidget(self.tree, 0, 0, 1, 1)
+        self.setLayout(self.layout)
 
     def on_item_pressed(self, item, num):
         if item != self.current_item:
             self.current_item.update_icon()
             item.update_icon()
             self.current_item = item
-            self.parent.on_nav_item_pressed(item.id)
+            if self.item_pressed_event:
+                self.item_pressed_event(self, item.config['id'])
+
+    def set_current_item(self, item_id):
+        if item_id != self.current_item.config['id']:
+            for item in self.items:
+                if item_id == item.config['id']:
+                    self.tree.setCurrentItem(item)
+                    self.current_item.update_icon()
+                    item.update_icon()
+                    self.current_item = item
 
 
-class TreeWidget(QtWidgets.QTreeWidget):
+    class TreeWidget(QtWidgets.QTreeWidget):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.setHeaderHidden(True)
-        self.setRootIsDecorated(False)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.setAnimated(True)
-        self.setIndentation(6)
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
-
-        self.setStyleSheet("""
-            QTreeWidget {
-                background-color:rgb(239,239,239,255);
-            }
-            QTreeWidget::item {
-                height: 48;
-            }
-            QTreeView::item:!has-children {
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 6px;
-                background-color:rgb(239,239,239,255);
-            }
-            QTreeView::item:!has-children:hover {
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 6px;
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e7effd, stop:1 #cbdaf1);
-            }
-            QTreeView::item:!has-children:selected {
-                margin : 0px 0px 0px 0px;
-                padding: 0px 0px 0px 6px;
-                color:lightgray;
-                background-color:rgb(27,29,30,255);
-            }
-        """)
+        def __init__(self, config):
+            super().__init__()
+            self.config = config
+            self.setHeaderHidden(True)
+            self.setRootIsDecorated(False)
+            self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+            self.setAnimated(True)
+            self.setIndentation(config['indentation'])
+            self.setFocusPolicy(QtCore.Qt.NoFocus)
+            self.setStyleSheet(config['style-sheet'])
 
 
-class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
+    class TreeWidgetItem(QtWidgets.QTreeWidgetItem):
 
-    def __init__(self, parent, config):
-        super().__init__(parent)
-        self.setText(0, config['text'])
-        self.icones = config['icones']
-        self.id = config['id']
-        self.update_icon()
+        def __init__(self, parent, config):
+            super().__init__(parent)
+            self.config = config
+            self.setText(0, config['text'])
+            self.update_icon()
 
-    def update_icon(self):
-        icon = QtGui.QIcon(self.icones['active'] if self.isSelected() else self.icones['normal'])
-        self.setIcon(0, icon)
+        def update_icon(self):
+            icon = QtGui.QIcon(self.config['icones']['active' if self.isSelected() else 'normal'])
+            self.setIcon(0, icon)
