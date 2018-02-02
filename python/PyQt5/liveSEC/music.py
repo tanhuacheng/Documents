@@ -1,14 +1,14 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from config import *
 
 
 class Music(QtWidgets.QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, config):
         super().__init__()
         self.parent = parent
+        self.config = config
 
         self.playlist = QtWidgets.QTreeWidget()
         self.lyric = QtWidgets.QTextEdit()
@@ -18,7 +18,7 @@ class Music(QtWidgets.QWidget):
         self.layout1.addWidget(self.playlist)
         self.layout1.addWidget(self.lyric)
 
-        self.control = ControlBar(CONFIG_MUSIC['control-bar'])
+        self.control = ControlBar(config['control-bar'])
 
         self.layout2 = QtWidgets.QVBoxLayout()
         self.layout2.setSpacing(0)

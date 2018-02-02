@@ -1,26 +1,23 @@
 #!/usr/bin/python3
 # -*- coding:utf-8
 
-import sys
 from PyQt5 import QtWidgets, QtGui, QtCore
-
-from config import *
-from navigation import Navigation
 from toolbar import ToolBar
+from navigation import Navigation
 from music import Music
 
 
 class MainWindow(QtWidgets.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
-        self.setWindowTitle(APP_NAME)
-        self.setWindowIcon(QtGui.QIcon(APP_ICON))
-        self.setMinimumSize(*WIN_SIZE)
+        self.config = config
+        self.setWindowTitle(config['app-name'])
+        self.setWindowIcon(QtGui.QIcon(config['app-icon']))
+        self.setMinimumSize(*config['minimum-size'])
 
         ag = QtWidgets.QDesktopWidget().availableGeometry()
-        h = ag.height()
-        w = ag.width()
+        h, w = ag.height(), ag.width()
         if w*0.618 > h:
             h = int(h*3/4 + 0.5)
             w = int(h/0.618 + 0.5)
@@ -28,7 +25,6 @@ class MainWindow(QtWidgets.QMainWindow):
             w = int(w*3/4 + 0.5)
             h = int(w*0.618 + 0.5)
         self.resize(w, h)
-
         fg = self.frameGeometry()
         fg.moveCenter(ag.center())
         self.move(fg.topLeft())
@@ -38,14 +34,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.container = QtWidgets.QStackedWidget()
         self.container_scene = QtWidgets.QPushButton('scene')
-        self.container_music = Music(self)
+        self.container_music = Music(self, config['container']['music'])
         self.container_weather = QtWidgets.QPushButton('weather')
         self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
         self.container.addWidget(self.container_weather)
 
-        self.toolbar = ToolBar(self)
-        self.navigation = Navigation(self)
+        self.toolbar = ToolBar(self, config['toolbar'])
+        self.navigation = Navigation(self, config['navigation'])
 
         self.layout1 = QtWidgets.QHBoxLayout()
         self.layout1.setSpacing(0)
@@ -115,7 +111,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def resizeEvent(self, event):
         self.move_navigation_fold(True)
 
+
 if __name__ == '__main__':
+    import sys
+    import config
+
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow().show()
+    MainWindow(config.main_config).show()
     sys.exit(app.exec_())
