@@ -60,10 +60,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.widget = QtWidgets.QWidget()
         self.widget.setLayout(self.vlayout)
 
-        self.navigation_fold = self.NavigationFoldButton(self.widget, config['navigation-fold'])
-        self.navigation_fold.setText('<')
-        self.navigation_fold.move(1, 0)
-        self.navigation_fold.clicked.connect(self.move_navigation_fold)
+        self.navigation_folder = self.NavigationFolder(self.widget, config['navigation-folder'])
+        self.navigation_folder.setText('<')
+        self.navigation_folder.move(1, 0)
+        self.navigation_folder.clicked.connect(self.move_navigation_folder)
 
         self.setCentralWidget(self.widget)
 
@@ -75,8 +75,8 @@ class MainWindow(QtWidgets.QMainWindow):
         elif item_id == 'weather':
             self.container.setCurrentWidget(self.container_weather)
 
-    def move_navigation_fold(self, resize=False):
-        hide = self.navigation_fold.frameGeometry().left() < 1
+    def move_navigation_folder(self, resize=False):
+        hide = self.navigation_folder.frameGeometry().left() < 1
         if not resize:
             if hide:
                 self.navigation.show()
@@ -87,39 +87,39 @@ class MainWindow(QtWidgets.QMainWindow):
         hnav = self.container.height()
         wnav = self.navigation.width()
 
-        hb, wb = map(lambda x: x / self.config['navigation-fold']['nav-sizefactor'], (hnav, wnav))
-        hb = max(hb, self.config['navigation-fold']['minimum-height'])
+        hb, wb = map(lambda x: x / self.config['navigation-folder']['nav-sizefactor'], (hnav, wnav))
+        hb = max(hb, self.config['navigation-folder']['minimum-height'])
         if hb/4 > wb:
             hb = wb*4
         else:
             wb = hb/4
         hb, wb = map(int, (hb, wb))
-        self.navigation_fold.resize(wb, hb)
+        self.navigation_folder.resize(wb, hb)
 
         top = int(hfix + hnav/2 - hb/2)
 
         if resize:
             if hide:
-                self.navigation_fold.move(0, top)
+                self.navigation_folder.move(0, top)
             else:
-                self.navigation_fold.move(int(wnav - wb), top)
+                self.navigation_folder.move(int(wnav - wb), top)
             return
 
         if hide:
-            self.navigation_fold.setText('<')
-            self.navigation_fold.move(int(wnav - wb), top)
+            self.navigation_folder.setText('<')
+            self.navigation_folder.move(int(wnav - wb), top)
         else:
-            self.navigation_fold.setText('>')
-            self.navigation_fold.move(0, top)
+            self.navigation_folder.setText('>')
+            self.navigation_folder.move(0, top)
 
     def showEvent(self, event):
-        self.move_navigation_fold(True)
+        self.move_navigation_folder(True)
 
     def resizeEvent(self, event):
-        self.move_navigation_fold(True)
+        self.move_navigation_folder(True)
 
 
-    class NavigationFoldButton(QtWidgets.QPushButton):
+    class NavigationFolder(QtWidgets.QPushButton):
 
         def __init__(self, parent, config):
             super().__init__(parent)

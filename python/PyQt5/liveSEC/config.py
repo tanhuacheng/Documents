@@ -271,23 +271,23 @@ main_config = {
         },
     },
 
-    'navigation-fold': {
+    'navigation-folder': {
         'minimum-height': 48,
         'nav-sizefactor': 10,
 
         'style-sheet': '''
             QPushButton {
-                background-color: rgb(27, 29, 30, 64);
-                color: #8e9a9a;
+                background-color: rgb(27, 29, 30, 48);
+                color: #757f7f;
                 border-radius: 2;
             }
             QPushButton:hover {
-                background-color: rgb(27, 29, 30, 128);
-                color: #b6c6c6;
+                background-color: rgb(27, 29, 30, 98);
+                color: #cedfdf;
             }
             QPushButton:pressed {
-                background-color: rgb(27, 29, 30, 192);
-                color: #dbefef;
+                background-color: rgb(27, 29, 30, 146);
+                color: #dff3f3;
             }
         ''',
     },
