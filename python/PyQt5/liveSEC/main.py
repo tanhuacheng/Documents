@@ -4,7 +4,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from toolbar import ToolBar
 from navigation import Navigation
-from music import Music
+from music.music import Music
 
 
 class MainWindow(QtWidgets.QMainWindow):

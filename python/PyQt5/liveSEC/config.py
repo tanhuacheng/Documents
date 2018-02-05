@@ -6,6 +6,9 @@ import os
 icones_dir = os.path.join(os.path.curdir, 'icones')
 icones_dir_music = os.path.join(icones_dir, 'music')
 
+config_dir = os.path.join(os.path.curdir, 'config')
+config_dir_music = os.path.join(config_dir, 'music')
+
 main_config = {
     'app-name': 'liveSEC',
     'app-icon': os.path.join(icones_dir, 'app.png'),
@@ -88,6 +91,7 @@ main_config = {
 
     'container': {
         'music': {
+            'netease-config-dir': os.path.join(config_dir_music, 'netease'),
             'control-bar': {
                 'minimum-height': 48,
                 'maximum-height': 60,
