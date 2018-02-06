@@ -11,16 +11,12 @@ class Music(QtWidgets.QWidget):
         super().__init__()
         self.config = config
 
-        self.playlist = QtWidgets.QTreeWidget()
-        self.playlist.setHeaderHidden(True)
-        self.playlist.setColumnWidth(0, 200)
-        self.playlist.setColumnCount(2)
-
-        self.lyric = QtWidgets.QTextEdit()
+        self.tree_song_list = self.TreeWidget(config['tree-song-list'])
+        self.lyric = QtWidgets.QTextEdit() # TODO
 
         self.layout1 = QtWidgets.QHBoxLayout()
         self.layout1.setSpacing(0)
-        self.layout1.addWidget(self.playlist)
+        self.layout1.addWidget(self.tree_song_list)
         self.layout1.addWidget(self.lyric)
 
         self.control = self.ControlBar(config['control-bar'])
@@ -33,18 +29,13 @@ class Music(QtWidgets.QWidget):
 
         self.setLayout(self.layout2)
 
-        self.netease = NetEase(config['netease-config-dir'])
-        if not self.netease.is_login():
-            self.netease.login('13418629507', '*')
-        recommends = self.netease.get_recommend()
-        self.netease.playlists = [{'name': '每日推荐', 'detail': recommends}]
-        for l in self.netease.get_playlists():
-            l['detail'] = self.netease.get_playlist_detail(l['id'], l['trackCount'])
-            self.netease.playlists.append(l)
+        self.music_account = self.MusicAccount(config['music-account'])
+        if not self.music_account.is_login():
+            self.music_account.login()
 
-        for l in self.netease.playlists:
-            root = QtWidgets.QTreeWidgetItem(self.playlist, [l['name']])
-            root.playlist = l['detail']
+        for lst in self.music_account.get_song_lists():
+            root = QtWidgets.QTreeWidgetItem(self.tree_song_list, [lst['name']])
+            root.playlist = lst['detail']
             for music in root.playlist:
                 artists = ''
                 ar = music['artists'] if 'artists' in music else music['ar']
@@ -62,7 +53,7 @@ class Music(QtWidgets.QWidget):
         self.media_player.playlist = None
         self.media_player.current = None
 
-        self.playlist.itemDoubleClicked.connect(self.on_playlist_double_clicked)
+        self.tree_song_list.itemDoubleClicked.connect(self.on_playlist_double_clicked)
 
         self.control.button_prev.clicked.connect(self.on_button_prev_clicked)
         self.control.button_play.clicked.connect(self.on_button_play_clicked)
@@ -75,9 +66,7 @@ class Music(QtWidgets.QWidget):
             if parent.playlist != self.media_player.playlist:
                 self.media_player.playlist = parent.playlist
             if item.music != self.media_player.current:
-                url = self.netease.get_musics_url([item.music['id']])
-                print(url)
-                mrl = url[0]['url']
+                mrl = self.music_account.get_music_url(item.music)
                 self.media_player.play(mrl)
                 self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
                 self.media_player.current = item.music
@@ -89,7 +78,7 @@ class Music(QtWidgets.QWidget):
             else:
                 index = 0
             self.media_player.current = self.media_player.playlist[index]
-            mrl = self.netease.get_musics_url([self.media_player.current['id']])[0]['url']
+            mrl = self.music_account.get_music_url(self.media_player.current)
             self.media_player.play(mrl)
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
@@ -111,7 +100,7 @@ class Music(QtWidgets.QWidget):
                 index = 0
             index = index % len(self.media_player.playlist)
             self.media_player.current = self.media_player.playlist[index]
-            mrl = self.netease.get_musics_url([self.media_player.current['id']])[0]['url']
+            mrl = self.music_account.get_music_url(self.media_player.current)
             self.media_player.play(mrl)
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
@@ -125,6 +114,21 @@ class Music(QtWidgets.QWidget):
         duration = int(self.media_player.duration * position)
         self.control.label_played_time.setText('%02d:%02d' % (duration // 60, duration % 60))
         self.control.progress_bar.setValue(100*position)
+
+
+    class TreeWidget(QtWidgets.QTreeWidget):
+
+        def __init__(self, config):
+            super().__init__()
+            self.config = config
+            self.setHeaderHidden(True)
+
+            column = len(config['column-width'])
+            self.setColumnCount(column)
+            for i in range(column):
+                width = config['column-width'][i]
+                if width > 0:
+                    self.setColumnWidth(i, width)
 
 
     class ControlBar(QtWidgets.QWidget):
@@ -247,6 +251,72 @@ class Music(QtWidgets.QWidget):
                     if hint == QtWidgets.QStyle.SH_Slider_AbsoluteSetButtons:
                         return QtCore.Qt.LeftButton | QtCore.Qt.MidButton
                     return super().styleHint(hint, *args, **kwargs)
+
+
+    class MusicAccount(NetEase):
+
+        def __init__(self, config):
+            super().__init__(config['netease-config-dir'])
+            self.config = config
+
+        def login(self):
+            dlg = QtWidgets.QDialog()
+            dlg.setWindowTitle('登录')
+
+            dlg.name_label = QtWidgets.QLabel('用户名:')
+            dlg.name_edit = QtWidgets.QLineEdit()
+            dlg.name_label.setBuddy(dlg.name_edit)
+
+            dlg.passwd_label = QtWidgets.QLabel('密码:')
+            dlg.passwd_edit = QtWidgets.QLineEdit()
+            dlg.passwd_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+            dlg.passwd_label.setBuddy(dlg.passwd_edit)
+
+            dlg.layout = QtWidgets.QHBoxLayout()
+            dlg.layout.addWidget(dlg.name_label)
+            dlg.layout.addWidget(dlg.name_edit)
+            dlg.layout.addWidget(dlg.passwd_label)
+            dlg.layout.addWidget(dlg.passwd_edit)
+
+            dlg.button = QtWidgets.QDialogButtonBox(dlg)
+            dlg.button.addButton('确定', QtWidgets.QDialogButtonBox.YesRole)
+            dlg.button.addButton('取消', QtWidgets.QDialogButtonBox.NoRole)
+            dlg.button.accepted.connect(dlg.accept)
+            dlg.button.rejected.connect(dlg.reject)
+
+            dlg.main_layout = QtWidgets.QVBoxLayout()
+            dlg.main_layout.addLayout(dlg.layout)
+            dlg.main_layout.addWidget(dlg.button)
+
+            dlg.setLayout(dlg.main_layout)
+
+            if dlg.exec() == QtWidgets.QDialog.Accepted:
+                name, passwd = dlg.name_edit.text(), dlg.passwd_edit.text()
+                if len(name) and len(passwd):
+                    return super().login(name, passwd)
+
+            return False
+
+        def get_song_lists(self):
+            song_lists = []
+
+            recommend = self.get_recommend()
+            if recommend:
+                song_list = { 'name': '每日推荐', 'detail': recommend }
+                song_lists.append(song_list)
+
+            lists = self.get_playlists()
+            if lists:
+                for lst in lists:
+                    detail = self.get_playlist_detail(lst['id'], lst['trackCount'])
+                    if detail:
+                        song_list = { 'name': lst['name'], 'detail': detail}
+                        song_lists.append(song_list)
+
+            return song_lists
+
+        def get_music_url(self, music):
+            return self.get_musics_url([music['id']])[0]['url']
 
 
     class MediaPlayer(object):

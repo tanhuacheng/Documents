@@ -3,10 +3,12 @@
 
 import os
 
-icones_dir = os.path.join(os.path.curdir, 'icones')
+base_dir = os.path.abspath(os.path.dirname(__file__))
+
+icones_dir = os.path.join(base_dir, 'icones')
 icones_dir_music = os.path.join(icones_dir, 'music')
 
-config_dir = os.path.join(os.path.curdir, 'config')
+config_dir = os.path.join(base_dir, 'config')
 config_dir_music = os.path.join(config_dir, 'music')
 
 main_config = {
@@ -91,7 +93,14 @@ main_config = {
 
     'container': {
         'music': {
-            'netease-config-dir': os.path.join(config_dir_music, 'netease'),
+            'music-account': {
+                'netease-config-dir': os.path.join(config_dir_music, 'netease'),
+            },
+
+            'tree-song-list': {
+                'column-width': (200, -1),
+            },
+
             'control-bar': {
                 'minimum-height': 48,
                 'maximum-height': 60,
