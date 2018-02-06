@@ -101,6 +101,10 @@ main_config = {
                 'column-width': (200, -1),
             },
 
+            'lyric': {
+                'background-color': '#6c7478',
+            },
+
             'control-bar': {
                 'minimum-height': 48,
                 'maximum-height': 60,

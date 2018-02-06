@@ -12,12 +12,12 @@ class Music(QtWidgets.QWidget):
         self.config = config
 
         self.tree_song_list = self.TreeWidget(config['tree-song-list'])
-        self.lyric = QtWidgets.QTextEdit() # TODO
+        self.lyric = self.Lyric(config['lyric'])
 
         self.layout1 = QtWidgets.QHBoxLayout()
         self.layout1.setSpacing(0)
-        self.layout1.addWidget(self.tree_song_list)
-        self.layout1.addWidget(self.lyric)
+        self.layout1.addWidget(self.tree_song_list, 1)
+        self.layout1.addWidget(self.lyric, 2)
 
         self.control = self.ControlBar(config['control-bar'])
 
@@ -67,6 +67,7 @@ class Music(QtWidgets.QWidget):
                 self.media_player.playlist = parent.playlist
             if item.music != self.media_player.current:
                 mrl = self.music_account.get_music_url(item.music)
+                self.lyric.load_lyric(self.music_account.get_music_lyric(item.music['id']))
                 self.media_player.play(mrl)
                 self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
                 self.media_player.current = item.music
@@ -114,6 +115,7 @@ class Music(QtWidgets.QWidget):
         duration = int(self.media_player.duration * position)
         self.control.label_played_time.setText('%02d:%02d' % (duration // 60, duration % 60))
         self.control.progress_bar.setValue(100*position)
+        self.lyric.update(duration)
 
 
     class TreeWidget(QtWidgets.QTreeWidget):
@@ -129,6 +131,65 @@ class Music(QtWidgets.QWidget):
                 width = config['column-width'][i]
                 if width > 0:
                     self.setColumnWidth(i, width)
+
+
+    class Lyric(QtWidgets.QWidget):
+
+        def __init__(self, config):
+            super().__init__()
+            self.config = config
+            self.pal = QtGui.QPalette(self.palette())
+            self.pal.setColor(QtGui.QPalette.Background, QtGui.QColor(config['background-color']))
+            self.setPalette(self.pal)
+            self.setAutoFillBackground(True)
+
+            self.label_text_height = 35
+
+            self.label = QtWidgets.QLabel()
+            self.label.setAlignment(QtCore.Qt.AlignCenter)
+
+            self.layout = QtWidgets.QGridLayout()
+            self.layout.addWidget(self.label, 0, 0, 1, 1)
+            self.setLayout(self.layout)
+
+        def load_lyric(self, lyric):
+            self.lyrics = []
+
+            rows = lyric.splitlines()
+            for row in rows:
+                l, r = row.find('['), row.find(']')
+                m, s = row[l+1:r].split(':')
+                self.lyrics.append({'time': 60*float(m) + float(s),
+                                    'text': row[r+1:] if r < len(row) else '<br>'})
+
+            self.update()
+
+        def update(self, time=0):
+            self.text = ''
+
+            befor = []
+            for lyric in self.lyrics:
+                if lyric['time'] < time:
+                    befor.append(lyric)
+                else:
+                    break
+            after = self.lyrics[len(befor):]
+
+            winh = self.height()
+            if len(befor) * self.label_text_height < winh:
+                self.text += \
+                    '<br>'*int((winh-len(befor)*self.label_text_height)/self.label_text_height)
+            else:
+                befor = befor[len(befor) - int(winh/self.label_text_height):]
+
+            for lyric in befor:
+                self.text += lyric['text'] + '<br>'
+            self.text += '<b style="color:lightgray">%s</b><br>' % after[0]['text']
+            for lyric in after[1:]:
+                self.text += lyric['text'] + '<br>'
+
+            self.label.setText(self.text)
+
 
 
     class ControlBar(QtWidgets.QWidget):

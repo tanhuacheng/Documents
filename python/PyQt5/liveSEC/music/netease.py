@@ -46,6 +46,7 @@ class NetEase(object):
         self.__uri_playlist        = 'https://music.163.com/weapi/user/playlist'
         self.__uri_playlist_detail = 'https://music.163.com/weapi/v3/playlist/detail'
         self.__uri_musics          = 'https://music.163.com/weapi/song/enhance/player/url'
+        self.__uri_lyric           = 'https://music.163.com/api/song/media'
 
         self.__default_timeout = 5
 
@@ -271,3 +272,15 @@ class NetEase(object):
             return None
 
         return r['data']
+
+    def get_music_lyric(self, music_id):
+        try:
+            r = requests.post(self.__uri_lyric + '?id=' + str(music_id))
+            if r and r.text:
+                r = json.loads(r.text)
+                if 'code' in r and r['code'] >= 200 and r['code'] <= 299 and 'lyric' in r:
+                    return r['lyric']
+        except:
+            pass
+
+        return None
