@@ -103,6 +103,7 @@ main_config = {
 
             'lyric': {
                 'background-color': '#6c7478',
+                'font-pixel-size': 20,
             },
 
             'control-bar': {

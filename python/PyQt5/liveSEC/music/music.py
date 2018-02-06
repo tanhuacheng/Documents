@@ -135,6 +135,8 @@ class Music(QtWidgets.QWidget):
 
     class Lyric(QtWidgets.QWidget):
 
+        _timeChanged = QtCore.pyqtSignal(int)
+
         def __init__(self, config):
             super().__init__()
             self.config = config
@@ -143,14 +145,19 @@ class Music(QtWidgets.QWidget):
             self.setPalette(self.pal)
             self.setAutoFillBackground(True)
 
-            self.label_text_height = 35
+            font = QtGui.QFont()
+            font.setPixelSize(config['font-pixel-size'])
 
-            self.label = QtWidgets.QLabel()
-            self.label.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_top = QtWidgets.QLabel(self)
+            self.label_top.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignBottom)
+            self.label_top.setFont(font)
 
-            self.layout = QtWidgets.QGridLayout()
-            self.layout.addWidget(self.label, 0, 0, 1, 1)
-            self.setLayout(self.layout)
+            self.label_bottom = QtWidgets.QLabel(self)
+            self.label_bottom.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
+            self.label_bottom.setFont(font)
+
+            self._timeChanged.connect(self._update)
+            self.time = 0
 
         def load_lyric(self, lyric):
             self.lyrics = []
@@ -162,10 +169,15 @@ class Music(QtWidgets.QWidget):
                 self.lyrics.append({'time': 60*float(m) + float(s),
                                     'text': row[r+1:] if r < len(row) else '<br>'})
 
-            self.update()
+            self._timeChanged.emit(0)
 
         def update(self, time=0):
-            self.text = ''
+            self._timeChanged.emit(time)
+
+        def _update(self, time=0):
+            self.time = time+0.01
+            self.text_top = ''
+            self.text_bottom = ''
 
             befor = []
             for lyric in self.lyrics:
@@ -175,21 +187,27 @@ class Music(QtWidgets.QWidget):
                     break
             after = self.lyrics[len(befor):]
 
-            winh = self.height()
-            if len(befor) * self.label_text_height < winh:
-                self.text += \
-                    '<br>'*int((winh-len(befor)*self.label_text_height)/self.label_text_height)
-            else:
-                befor = befor[len(befor) - int(winh/self.label_text_height):]
+            if befor:
+                if len(befor) > 6: # TODO auto just from height
+                    befor = befor[len(befor)-6:]
+                if len(befor) > 1:
+                    for lyric in befor[0:-1]:
+                        self.text_top += lyric['text'] + '<br>'
+                self.text_top += '<b style="color:lightgray">%s</b>' % befor[-1]['text']
+            for lyric in after:
+                self.text_bottom += lyric['text'] + '<br>'
 
-            for lyric in befor:
-                self.text += lyric['text'] + '<br>'
-            self.text += '<b style="color:lightgray">%s</b><br>' % after[0]['text']
-            for lyric in after[1:]:
-                self.text += lyric['text'] + '<br>'
+            self.label_top.setText(self.text_top)
+            self.label_bottom.setText(self.text_bottom)
 
-            self.label.setText(self.text)
-
+        def resizeEvent(self, event):
+            w, h = self.width(), self.height()
+            self.label_top.resize(w, (h+1)//2)
+            self.label_top.move(0, 0)
+            self.label_bottom.resize(w, h//2)
+            self.label_bottom.move(0, (h+1)//2)
+            if self.time:
+                self._update(self.time)
 
 
     class ControlBar(QtWidgets.QWidget):
