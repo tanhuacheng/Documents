@@ -51,6 +51,7 @@ class Music(QtWidgets.QWidget):
         self.media_player.lengthChanged.connect(self.on_length_changed)
         self.media_player.positionChanged.connect(self.on_position_changed)
         self.media_player.endReached.connect(self.on_end_reached)
+        self.media_player.volumeChanged.connect(self.control.set_volume)
         self.media_player.playlist = None
         self.media_player.current = None
         self.media_player.duration = 0
@@ -61,12 +62,11 @@ class Music(QtWidgets.QWidget):
         self.control.button_play.clicked.connect(self.on_button_play_clicked)
         self.control.button_pause.clicked.connect(self.on_button_pause_clicked)
         self.control.button_next.clicked.connect(self.on_button_next_clicked)
+
         self.control.progress_bar.valueChanged.connect(self.on_progress_bar_value_changed)
 
-        self.control.button_volume_mute.clicked.connect(self.on_button_volume_clicked)
-        self.control.button_volume_low.clicked.connect(self.on_button_volume_clicked)
-        self.control.button_volume_medium.clicked.connect(self.on_button_volume_clicked)
-        self.control.button_volume_high.clicked.connect(self.on_button_volume_clicked)
+        self.control.callback_get_volume = self.media_player.volume
+        self.control.volumeChanged.connect(self.media_player.set_volume)
 
     def on_playlist_double_clicked(self, item, column):
         parent = item.parent()
@@ -153,12 +153,6 @@ class Music(QtWidgets.QWidget):
 
     def on_progress_bar_value_changed(self, value):
         self.media_player.seek(value)
-
-    def on_button_volume_clicked(self):
-        volume = self.media_player.volume()
-        volume_dialog = self.VolumeDialog(volume, None)
-        volume_dialog.exec()
-
 
     class TreeWidget(QtWidgets.QTreeWidget):
 
@@ -273,6 +267,8 @@ class Music(QtWidgets.QWidget):
 
     class ControlBar(QtWidgets.QWidget):
 
+        volumeChanged = QtCore.pyqtSignal(int)
+
         def __init__(self, config):
             super().__init__()
             self.config = config
@@ -341,6 +337,12 @@ class Music(QtWidgets.QWidget):
             self.stack_volume.addWidget(self.button_volume_high)
             self.layout.addWidget(self.stack_volume)
 
+            self.button_volume_add_menu(self.button_volume_mute)
+            self.button_volume_add_menu(self.button_volume_low)
+            self.button_volume_add_menu(self.button_volume_medium)
+            self.button_volume_add_menu(self.button_volume_high)
+            self.callback_get_volume = None
+
             self.layout.addStretch(8)
             self.button_lyric = self.PushButton(config['button-lyric'])
             self.layout.addWidget(self.button_lyric)
@@ -351,6 +353,90 @@ class Music(QtWidgets.QWidget):
 
             self.layout.addStretch(1)
             self.setLayout(self.layout)
+
+        def button_volume_add_menu(self, button):
+            button.setStyleSheet('''
+                QPushButton::menu-indicator {
+                    image: None;
+                }
+            ''' + button.styleSheet())
+
+            button.widget = QtWidgets.QWidget()
+            button.widget.slider = QtWidgets.QSlider()
+            button.widget.slider.setMinimum(0)
+            button.widget.slider.setMaximum(100)
+            button.widget.layout = QtWidgets.QGridLayout()
+            button.widget.layout.addWidget(button.widget.slider, 0, 0, 1, 1)
+            button.widget.setLayout(button.widget.layout)
+
+            button.action = QtWidgets.QWidgetAction(button)
+            button.action.setDefaultWidget(button.widget)
+
+            button.menu = QtWidgets.QMenu()
+            button.menu.addAction(button.action)
+            button.setMenu(button.menu)
+
+            button.menu.aboutToShow.connect(self.volume_menu_about_to_show)
+            button.widget.slider.valueChanged.connect(self.volume_changed)
+            button.menu.aboutToHide.connect(self.volume_menu_about_to_hide)
+
+        def volume_menu_about_to_show(self):
+            self.stack_volume.current_widget = self.stack_volume.currentWidget()
+            if self.callback_get_volume:
+                self.set_volume(self.callback_get_volume())
+
+        def volume_changed(self, value):
+            if self.stack_volume.current_widget != self.button_volume_mute:
+                block = self.button_volume_mute.widget.slider.blockSignals(True)
+                self.button_volume_mute.widget.slider.setValue(value)
+                self.button_volume_mute.widget.slider.blockSignals(block)
+            if self.stack_volume.current_widget != self.button_volume_low:
+                block = self.button_volume_low.widget.slider.blockSignals(True)
+                self.button_volume_low.widget.slider.setValue(value)
+                self.button_volume_low.widget.slider.blockSignals(block)
+            if self.stack_volume.current_widget != self.button_volume_medium:
+                block = self.button_volume_medium.widget.slider.blockSignals(True)
+                self.button_volume_medium.widget.slider.setValue(value)
+                self.button_volume_medium.widget.slider.blockSignals(block)
+            if self.stack_volume.current_widget != self.button_volume_high:
+                block = self.button_volume_high.widget.slider.blockSignals(True)
+                self.button_volume_high.widget.slider.setValue(value)
+                self.button_volume_high.widget.slider.blockSignals(block)
+
+            self.set_volume_button(value)
+            self.volumeChanged.emit(value)
+
+        def volume_menu_about_to_hide(self):
+            self.stack_volume.current_widget = self.stack_volume.currentWidget()
+
+        def set_volume(self, value):
+            block = self.button_volume_mute.widget.slider.blockSignals(True)
+            self.button_volume_mute.widget.slider.setValue(value)
+            self.button_volume_mute.widget.slider.blockSignals(block)
+
+            block = self.button_volume_low.widget.slider.blockSignals(True)
+            self.button_volume_low.widget.slider.setValue(value)
+            self.button_volume_low.widget.slider.blockSignals(block)
+
+            block = self.button_volume_medium.widget.slider.blockSignals(True)
+            self.button_volume_medium.widget.slider.setValue(value)
+            self.button_volume_medium.widget.slider.blockSignals(block)
+
+            block = self.button_volume_high.widget.slider.blockSignals(True)
+            self.button_volume_high.widget.slider.setValue(value)
+            self.button_volume_high.widget.slider.blockSignals(block)
+
+            self.set_volume_button(value)
+
+        def set_volume_button(self, value):
+            if value == 0:
+                self.stack_volume.setCurrentWidget(self.button_volume_mute)
+            elif value < 34:
+                self.stack_volume.setCurrentWidget(self.button_volume_low)
+            elif value < 67:
+                self.stack_volume.setCurrentWidget(self.button_volume_medium)
+            else:
+                self.stack_volume.setCurrentWidget(self.button_volume_high)
 
 
         class PushButton(QtWidgets.QPushButton):
@@ -391,24 +477,6 @@ class Music(QtWidgets.QWidget):
                     if hint == QtWidgets.QStyle.SH_Slider_AbsoluteSetButtons:
                         return QtCore.Qt.LeftButton | QtCore.Qt.MidButton
                     return super().styleHint(hint, *args, **kwargs)
-
-
-    class VolumeDialog(QtWidgets.QDialog):
-
-        def __init__(self, volume, config):
-            super().__init__()
-            self.config = config
-            #  self.setWindowFlag(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
-            #  self.setWindowFlag(QtCore.Qt.Popup | QtCore.Qt.Dialog)
-
-            self.layout = QtWidgets.QGridLayout()
-            self.volume_bar = QtWidgets.QSlider(QtCore.Qt.Vertical)
-            self.volume_bar.setValue(volume)
-            self.layout.addWidget(self.volume_bar)
-            self.setLayout(self.layout)
-
-        def focusOutEvent(self, event):
-            print(event)
 
 
     class MusicAccount(NetEase):
@@ -482,6 +550,7 @@ class Music(QtWidgets.QWidget):
         lengthChanged = QtCore.pyqtSignal(float)
         positionChanged = QtCore.pyqtSignal(float)
         endReached = QtCore.pyqtSignal()
+        volumeChanged = QtCore.pyqtSignal(int)
 
         def __init__(self):
             super().__init__()
@@ -491,6 +560,7 @@ class Music(QtWidgets.QWidget):
             self.em.event_attach(vlc.EventType.MediaPlayerLengthChanged, self.on_length_changed)
             self.em.event_attach(vlc.EventType.MediaPlayerPositionChanged, self.on_position_changed)
             self.em.event_attach(vlc.EventType.MediaPlayerEndReached, self.on_end_reached)
+            self.em.event_attach(vlc.EventType.MediaPlayerAudioVolume, self.on_volume_changed)
 
             self.media = None
             self.length = 0
@@ -514,6 +584,9 @@ class Music(QtWidgets.QWidget):
         def volume(self):
             return self.player.audio_get_volume()
 
+        def set_volume(self, value):
+            self.player.audio_set_volume(value)
+
         def on_length_changed(self, *args, **kwargs):
             length = max(self.media.get_duration(), 0)
             if abs(self.length - length) < 500:
@@ -527,3 +600,6 @@ class Music(QtWidgets.QWidget):
 
         def on_end_reached(self, *args, **kwargs):
             self.endReached.emit()
+
+        def on_volume_changed(self, *args, **kwargs):
+            self.volumeChanged.emit(self.player.audio_get_volume())
