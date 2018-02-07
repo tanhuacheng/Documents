@@ -16,8 +16,8 @@ class Music(QtWidgets.QWidget):
 
         self.layout1 = QtWidgets.QHBoxLayout()
         self.layout1.setSpacing(0)
-        self.layout1.addWidget(self.tree_song_list, 1)
-        self.layout1.addWidget(self.lyric, 2)
+        self.layout1.addWidget(self.tree_song_list, 2)
+        self.layout1.addWidget(self.lyric, 3)
 
         self.control = self.ControlBar(config['control-bar'])
 
@@ -48,10 +48,12 @@ class Music(QtWidgets.QWidget):
                 item.music = music
 
         self.media_player = self.MediaPlayer()
-        self.media_player.event_playing = self.on_playing
-        self.media_player.event_position_changed = self.on_position_changed
+        self.media_player.lengthChanged.connect(self.on_length_changed)
+        self.media_player.positionChanged.connect(self.on_position_changed)
+        self.media_player.endReached.connect(self.on_end_reached)
         self.media_player.playlist = None
         self.media_player.current = None
+        self.media_player.duration = 0
 
         self.tree_song_list.itemDoubleClicked.connect(self.on_playlist_double_clicked)
 
@@ -59,6 +61,7 @@ class Music(QtWidgets.QWidget):
         self.control.button_play.clicked.connect(self.on_button_play_clicked)
         self.control.button_pause.clicked.connect(self.on_button_pause_clicked)
         self.control.button_next.clicked.connect(self.on_button_next_clicked)
+        self.control.progress_bar.valueChanged.connect(self.progress_bar_value_changed)
 
     def on_playlist_double_clicked(self, item, column):
         parent = item.parent()
@@ -66,11 +69,18 @@ class Music(QtWidgets.QWidget):
             if parent.playlist != self.media_player.playlist:
                 self.media_player.playlist = parent.playlist
             if item.music != self.media_player.current:
+                self.control.label_total_time.setText('00:00')
+                self.control.label_played_time.setText('00:00')
+                block = self.control.progress_bar.blockSignals(True)
+                self.control.progress_bar.setValue(0)
+                self.control.progress_bar.blockSignals(block)
                 mrl = self.music_account.get_music_url(item.music)
                 self.lyric.load_lyric(self.music_account.get_music_lyric(item.music['id']))
                 self.media_player.play(mrl)
                 self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
                 self.media_player.current = item.music
+            elif self.control.stack_play_pause.currentWidget() == self.control.button_play:
+                self.on_button_play_clicked()
 
     def on_button_prev_clicked(self):
         if self.media_player.playlist:
@@ -78,8 +88,15 @@ class Music(QtWidgets.QWidget):
                 index = self.media_player.playlist.index(self.media_player.current) - 1
             else:
                 index = 0
+            index = (index + len(self.media_player.playlist)) % len(self.media_player.playlist)
             self.media_player.current = self.media_player.playlist[index]
+            self.control.label_total_time.setText('00:00')
+            self.control.label_played_time.setText('00:00')
+            block = self.control.progress_bar.blockSignals(True)
+            self.control.progress_bar.setValue(0)
+            self.control.progress_bar.blockSignals(block)
             mrl = self.music_account.get_music_url(self.media_player.current)
+            self.lyric.load_lyric(self.music_account.get_music_lyric(self.media_player.current['id']))
             self.media_player.play(mrl)
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
@@ -99,23 +116,38 @@ class Music(QtWidgets.QWidget):
                 index = self.media_player.playlist.index(self.media_player.current) + 1
             else:
                 index = 0
-            index = index % len(self.media_player.playlist)
+            index = (index + len(self.media_player.playlist)) % len(self.media_player.playlist)
             self.media_player.current = self.media_player.playlist[index]
+            self.control.label_total_time.setText('00:00')
+            self.control.label_played_time.setText('00:00')
+            block = self.control.progress_bar.blockSignals(True)
+            self.control.progress_bar.setValue(0)
+            self.control.progress_bar.blockSignals(block)
             mrl = self.music_account.get_music_url(self.media_player.current)
+            self.lyric.load_lyric(self.music_account.get_music_lyric(self.media_player.current['id']))
             self.media_player.play(mrl)
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
-    def on_playing(self):
-        duration = int(self.media_player.media_duration() / 1000)
+    def on_length_changed(self, length):
+        duration = length / 1000
         self.media_player.duration = duration
+        duration = int(duration + 0.5)
         self.control.label_total_time.setText('%02d:%02d' % (duration // 60, duration % 60))
 
-    def on_position_changed(self):
-        position = self.media_player.player_position()
-        duration = int(self.media_player.duration * position)
-        self.control.label_played_time.setText('%02d:%02d' % (duration // 60, duration % 60))
-        self.control.progress_bar.setValue(100*position)
+    def on_position_changed(self, position):
+        duration = self.media_player.duration * position
         self.lyric.update(duration)
+        duration = int(duration + 0.5)
+        self.control.label_played_time.setText('%02d:%02d' % (duration // 60, duration % 60))
+        block = self.control.progress_bar.blockSignals(True)
+        self.control.progress_bar.setValue(int(100*position + 0.5))
+        self.control.progress_bar.blockSignals(block)
+
+    def on_end_reached(self):
+        self.on_button_next_clicked()
+
+    def progress_bar_value_changed(self, value):
+        self.media_player.seek(value)
 
 
     class TreeWidget(QtWidgets.QTreeWidget):
@@ -135,8 +167,6 @@ class Music(QtWidgets.QWidget):
 
     class Lyric(QtWidgets.QWidget):
 
-        _timeChanged = QtCore.pyqtSignal(int)
-
         def __init__(self, config):
             super().__init__()
             self.config = config
@@ -150,32 +180,43 @@ class Music(QtWidgets.QWidget):
 
             self.label_top = QtWidgets.QLabel(self)
             self.label_top.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignBottom)
+            self.label_top.setWordWrap(True)
             self.label_top.setFont(font)
 
             self.label_bottom = QtWidgets.QLabel(self)
             self.label_bottom.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
+            self.label_bottom.setWordWrap(True)
             self.label_bottom.setFont(font)
 
-            self._timeChanged.connect(self._update)
             self.time = 0
 
         def load_lyric(self, lyric):
             self.lyrics = []
+            rows = []
 
-            rows = lyric.splitlines()
+            if isinstance(lyric, str):
+                rows = lyric.splitlines()
+
             for row in rows:
-                l, r = row.find('['), row.find(']')
-                m, s = row[l+1:r].split(':')
-                self.lyrics.append({'time': 60*float(m) + float(s),
-                                    'text': row[r+1:] if r < len(row) else '<br>'})
+                try:
+                    times = []
+                    while True:
+                        l, r = row.find('['), row.find(']')
+                        m, s = row[l+1:r].split(':')
+                        times.append(float(m)*60 + float(s))
+                        row = row[r+1:]
+                        if not (row.find('[') >= 0 and row.find(']') >= 0):
+                            break
+                    for time in times:
+                        self.lyrics.append({'time': time, 'text': row})
+                except:
+                    pass
 
-            self._timeChanged.emit(0)
+            self.lyrics.sort(key=lambda x: x['time'])
+            self.update()
 
         def update(self, time=0):
-            self._timeChanged.emit(time)
-
-        def _update(self, time=0):
-            self.time = time+0.01
+            self.time = time + 0.01
             self.text_top = ''
             self.text_bottom = ''
 
@@ -187,13 +228,23 @@ class Music(QtWidgets.QWidget):
                     break
             after = self.lyrics[len(befor):]
 
+            text = ''
+            for lyric in befor[::-1]:
+                temp = text + lyric['text'] + '\n'
+                label = self.label_top
+                lw, lh = label.width(), label.height()
+                if (label.fontMetrics().boundingRect(0, 0, lw, lh, label.alignment() |
+                    QtCore.Qt.TextWordWrap, temp[0:-1]).height()) > lh:
+                    break
+                else:
+                    text = temp
+            befor = text.splitlines()[::-1]
+
             if befor:
-                if len(befor) > 6: # TODO auto just from height
-                    befor = befor[len(befor)-6:]
                 if len(befor) > 1:
-                    for lyric in befor[0:-1]:
-                        self.text_top += lyric['text'] + '<br>'
-                self.text_top += '<b style="color:lightgray">%s</b>' % befor[-1]['text']
+                    for line in befor[0:-1]:
+                        self.text_top += line + '<br>'
+                self.text_top += '<b style="color:lightgray">%s</b>' % befor[-1]
             for lyric in after:
                 self.text_bottom += lyric['text'] + '<br>'
 
@@ -207,7 +258,7 @@ class Music(QtWidgets.QWidget):
             self.label_bottom.resize(w, h//2)
             self.label_bottom.move(0, (h+1)//2)
             if self.time:
-                self._update(self.time)
+                self.update(self.time)
 
 
     class ControlBar(QtWidgets.QWidget):
@@ -262,7 +313,7 @@ class Music(QtWidgets.QWidget):
             self.layout.addWidget(self.progress_bar, 48)
 
             self.layout.addStretch(1)
-            self.label_total_time = QtWidgets.QLabel('03:56')
+            self.label_total_time = QtWidgets.QLabel('00:00')
             self.label_total_time.setStyleSheet(config['label-total-time']['style-sheet'])
             self.layout.addWidget(self.label_total_time)
 
@@ -398,19 +449,23 @@ class Music(QtWidgets.QWidget):
             return self.get_musics_url([music['id']])[0]['url']
 
 
-    class MediaPlayer(object):
+    class MediaPlayer(QtCore.QObject):
+
+        lengthChanged = QtCore.pyqtSignal(float)
+        positionChanged = QtCore.pyqtSignal(float)
+        endReached = QtCore.pyqtSignal()
 
         def __init__(self):
+            super().__init__()
             self.instance = vlc.Instance()
             self.player = vlc.MediaPlayer(self.instance)
-            self.player.event_manager().event_attach(
-                vlc.EventType.MediaPlayerPlaying, self.on_playing)
-            self.player.event_manager().event_attach(
-                vlc.EventType.MediaPlayerPositionChanged, self.on_position_changed)
-            self.media = None
+            self.em = self.player.event_manager()
+            self.em.event_attach(vlc.EventType.MediaPlayerLengthChanged, self.on_length_changed)
+            self.em.event_attach(vlc.EventType.MediaPlayerPositionChanged, self.on_position_changed)
+            self.em.event_attach(vlc.EventType.MediaPlayerEndReached, self.on_end_reached)
 
-            self.event_playing = None
-            self.event_position_changed = None
+            self.media = None
+            self.length = 0
 
         def play(self, mrl=None):
             if mrl:
@@ -420,30 +475,24 @@ class Music(QtWidgets.QWidget):
                 self.media = self.instance.media_new(mrl)
                 self.player.set_media(self.media)
                 self.player.play()
+                self.length = 0
             else:
                 self.player.pause() # toggle pause
 
-        def is_playing(self):
-            return self.player.is_playing()
+        def seek(self, value=0):
+            self.player.set_position(value/100)
+            self.positionChanged.emit(value/100)
 
-        def on_playing(self, *args, **kwargs):
-            if self.event_playing:
-                self.event_playing()
-
-        def media_duration(self):
-            return self.media.get_duration()
+        def on_length_changed(self, *args, **kwargs):
+            length = max(self.media.get_duration(), 0)
+            if abs(self.length - length) < 500:
+                self.length = length
+            else:
+                self.length = length
+                self.lengthChanged.emit(length)
 
         def on_position_changed(self, *args, **kwargs):
-            if self.event_position_changed:
-                self.event_position_changed()
+            self.positionChanged.emit(self.player.get_position())
 
-        def player_position(self):
-            return self.player.get_position()
-
-#  {
-#      'artists': [{'briefDesc': '', 'musicSize': 0, 'id': 747030, 'picId': 0, 'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'trans': '', 'name': 'Vicetone', 'alias': [], 'albumSize': 0, 'img1v1Id': 0, 'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg'},
-#          {'briefDesc': '', 'musicSize': 0, 'id': 1097153, 'picId': 0, 'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'trans': '', 'name': 'Cozi Zuehlsdorff', 'alias': [], 'albumSize': 0, 'img1v1Id': 0, 'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg'}],
-#      'name': 'Nevada',
-#      'album': {'picId_str': '18517974835045498', 'company': 'Monstercat', 'subType': '混音版', 'blurPicUrl': 'http://p1.music.126.net/8uFCXr2mUoXNAK1EJgVBhw==/18517974835045498.jpg', 'artist': {'briefDesc': '', 'musicSize': 0, 'id': 0, 'picId': 0, 'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'trans': '', 'name': '', 'alias': [], 'albumSize': 0, 'img1v1Id': 0, 'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg'}, 'briefDesc': '', 'artists': [{'briefDesc': '', 'musicSize': 0, 'id': 747030, 'picId': 0, 'picUrl': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg', 'trans': '', 'name': 'Vicetone', 'alias': [], 'albumSize': 0, 'img1v1Id': 0, 'img1v1Url': 'http://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg'}], 'pic': 18517974835045498, 'picId': 18517974835045498, 'description': '', 'name': 'Nevada', 'size': 1, 'picUrl': 'http://p1.music.126.net/8uFCXr2mUoXNAK1EJgVBhw==/18517974835045498.jpg', 'type': 'EP/Single', 'companyId': 0, 'commentThreadId': 'R_AL_3_34750015', 'copyrightId': 0, 'publishTime': 1466697600007, 'tags': '', 'alias': [], 'status': 0, 'id': 34750015, 'songs': []},
-#      'duration': 208561
-#  }
+        def on_end_reached(self, *args, **kwargs):
+            self.endReached.emit()
