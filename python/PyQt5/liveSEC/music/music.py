@@ -61,7 +61,12 @@ class Music(QtWidgets.QWidget):
         self.control.button_play.clicked.connect(self.on_button_play_clicked)
         self.control.button_pause.clicked.connect(self.on_button_pause_clicked)
         self.control.button_next.clicked.connect(self.on_button_next_clicked)
-        self.control.progress_bar.valueChanged.connect(self.progress_bar_value_changed)
+        self.control.progress_bar.valueChanged.connect(self.on_progress_bar_value_changed)
+
+        self.control.button_volume_mute.clicked.connect(self.on_button_volume_clicked)
+        self.control.button_volume_low.clicked.connect(self.on_button_volume_clicked)
+        self.control.button_volume_medium.clicked.connect(self.on_button_volume_clicked)
+        self.control.button_volume_high.clicked.connect(self.on_button_volume_clicked)
 
     def on_playlist_double_clicked(self, item, column):
         parent = item.parent()
@@ -146,8 +151,13 @@ class Music(QtWidgets.QWidget):
     def on_end_reached(self):
         self.on_button_next_clicked()
 
-    def progress_bar_value_changed(self, value):
+    def on_progress_bar_value_changed(self, value):
         self.media_player.seek(value)
+
+    def on_button_volume_clicked(self):
+        volume = self.media_player.volume()
+        volume_dialog = self.VolumeDialog(volume, None)
+        volume_dialog.exec()
 
 
     class TreeWidget(QtWidgets.QTreeWidget):
@@ -383,6 +393,24 @@ class Music(QtWidgets.QWidget):
                     return super().styleHint(hint, *args, **kwargs)
 
 
+    class VolumeDialog(QtWidgets.QDialog):
+
+        def __init__(self, volume, config):
+            super().__init__()
+            self.config = config
+            #  self.setWindowFlag(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
+            #  self.setWindowFlag(QtCore.Qt.Popup | QtCore.Qt.Dialog)
+
+            self.layout = QtWidgets.QGridLayout()
+            self.volume_bar = QtWidgets.QSlider(QtCore.Qt.Vertical)
+            self.volume_bar.setValue(volume)
+            self.layout.addWidget(self.volume_bar)
+            self.setLayout(self.layout)
+
+        def focusOutEvent(self, event):
+            print(event)
+
+
     class MusicAccount(NetEase):
 
         def __init__(self, config):
@@ -482,6 +510,9 @@ class Music(QtWidgets.QWidget):
         def seek(self, value=0):
             self.player.set_position(value/100)
             self.positionChanged.emit(value/100)
+
+        def volume(self):
+            return self.player.audio_get_volume()
 
         def on_length_changed(self, *args, **kwargs):
             length = max(self.media.get_duration(), 0)
