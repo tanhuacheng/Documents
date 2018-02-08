@@ -1,3 +1,6 @@
+qt5-doc-html: /usr/share/doc/qt5-doc-html/
+
+
 git 拉取远程tag
 
     git fetch --tags

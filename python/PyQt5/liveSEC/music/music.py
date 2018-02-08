@@ -504,9 +504,8 @@ class Music(QtWidgets.QWidget):
             dlg.layout.addWidget(dlg.passwd_label)
             dlg.layout.addWidget(dlg.passwd_edit)
 
-            dlg.button = QtWidgets.QDialogButtonBox(dlg)
-            dlg.button.addButton('确定', QtWidgets.QDialogButtonBox.YesRole)
-            dlg.button.addButton('取消', QtWidgets.QDialogButtonBox.NoRole)
+            dlg.button = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok |
+                                                    QtWidgets.QDialogButtonBox.Cancel)
             dlg.button.accepted.connect(dlg.accept)
             dlg.button.rejected.connect(dlg.reject)
 
