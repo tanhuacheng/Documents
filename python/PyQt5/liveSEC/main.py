@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from toolbar import ToolBar
 from navigation import Navigation
 from music.music import Music
+from weather.weather import Weather
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -41,17 +42,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hlayout.setSpacing(0)
 
         self.navigation = Navigation(config['navigation'])
-        self.navigation.set_current_item('music')
+        self.navigation.set_current_item('weather')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
         self.container_scene = QtWidgets.QPushButton('scene')           # TODO
         self.container_music = Music(config['container']['music'])
-        self.container_weather = QtWidgets.QPushButton('weather')       # TODO
+        self.container_weather = Weather(None)
         self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
         self.container.addWidget(self.container_weather)
-        self.container.setCurrentWidget(self.container_music)
+        self.container.setCurrentWidget(self.container_weather)
 
         self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed
 

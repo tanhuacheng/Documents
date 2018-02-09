@@ -395,6 +395,7 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__)
     res = weather(arguments['<city>'])
+    print(arguments['<city>'])
 
     if 'error' in res:
         print(res['error'])
