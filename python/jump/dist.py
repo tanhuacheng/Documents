@@ -150,8 +150,8 @@ if __name__ == '__main__':
     show_pixel(token_x, token_y, 10)
     show_pixel(board_x, board_y, 10)
 
-    plt.imshow(img)
-    plt.show()
+    #  plt.imshow(img)
+    #  plt.show()
 
     dist = math.sqrt((token_x - board_x)**2 + (token_y - board_y)**2)
     print(int(dist*1.383))
