@@ -1,3 +1,7 @@
+Ubuntu 16.04 LTS 点击图标最小化:
+    gsettings set org.compiz.unityshell:/org/compiz/profiles/unity/plugins/unityshell/ \
+    launcher-minimize-window true
+
 octave 类似 matlab 的数据可视化工具
 
 qt5-doc-html: /usr/share/doc/qt5-doc-html/
