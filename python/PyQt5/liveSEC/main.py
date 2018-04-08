@@ -42,7 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hlayout.setSpacing(0)
 
         self.navigation = Navigation(config['navigation'])
-        self.navigation.set_current_item('weather')
+        self.navigation.set_current_item('music')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
@@ -52,7 +52,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
         self.container.addWidget(self.container_weather)
-        self.container.setCurrentWidget(self.container_weather)
+        self.container.setCurrentWidget(self.container_music)
 
         self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed
 

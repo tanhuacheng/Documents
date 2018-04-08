@@ -12,22 +12,16 @@ class Music(QtWidgets.QWidget):
         self.config = config
 
         self.tree_song_list = self.TreeWidget(config['tree-song-list'])
-        self.lyric = self.Lyric(config['lyric'])
-
-        self.layout1 = QtWidgets.QHBoxLayout()
-        self.layout1.setSpacing(0)
-        self.layout1.addWidget(self.tree_song_list, 2)
-        self.layout1.addWidget(self.lyric, 3)
-
         self.control = self.ControlBar(config['control-bar'])
 
         self.layout2 = QtWidgets.QVBoxLayout()
         self.layout2.setSpacing(0)
         self.layout2.setContentsMargins(0, 0, 0, 0)
-        self.layout2.addLayout(self.layout1)
+        self.layout2.addWidget(self.tree_song_list)
         self.layout2.addWidget(self.control)
 
         self.setLayout(self.layout2)
+        self.lyric = self.Lyric(self)
 
         self.music_account = self.MusicAccount(config['music-account'])
         if not self.music_account.is_login():
@@ -67,6 +61,9 @@ class Music(QtWidgets.QWidget):
 
         self.control.callback_get_volume = self.media_player.volume
         self.control.volumeChanged.connect(self.media_player.set_volume)
+
+    def resizeEvent(self, event):
+        self.lyric.parent_resized()
 
     def on_playlist_double_clicked(self, item, column):
         parent = item.parent()
@@ -171,36 +168,65 @@ class Music(QtWidgets.QWidget):
 
     class Lyric(QtWidgets.QWidget):
 
-        def __init__(self, config):
-            super().__init__()
-            self.config = config
-            self.pal = QtGui.QPalette(self.palette())
-            self.pal.setColor(QtGui.QPalette.Background, QtGui.QColor(config['background-color']))
-            self.setPalette(self.pal)
-            self.setAutoFillBackground(True)
+        def __init__(self, parent):
+            super().__init__(parent)
 
+            self.shift = QtWidgets.QSpinBox()
+            self.lyric = QtWidgets.QLabel()
+
+            self.layout = QtWidgets.QHBoxLayout()
+            self.layout.setSpacing(0)
+            self.layout.setContentsMargins(0, 0, 0, 0)
+            self.layout.addWidget(self.lyric)
+            self.layout.addWidget(self.shift)
+            self.setLayout(self.layout)
+
+            self.style_sheet_fmt = '''
+                QWidget {
+                    background-color: rgb(%d, %d, %d, %d);
+                }
+                QLabel {
+                    color: blue;
+                }
+            '''
+            self.setStyleSheet('QWidget { background-color: rgb(0, 0, 0, 0); }')
+
+            self.shift.setMinimum(-50)
+            self.shift.setMaximum(+50)
+            self.shift.hide()
+
+            self.lyric.setStyleSheet('QLabel { color: blue; }')
             font = QtGui.QFont()
-            font.setPixelSize(config['font-pixel-size'])
+            font.setPixelSize(24)
+            self.lyric.setFont(font)
 
-            self.label_top = QtWidgets.QLabel(self)
-            self.label_top.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignBottom)
-            self.label_top.setWordWrap(True)
-            self.label_top.setFont(font)
+            self.lyric.setAlignment(QtCore.Qt.AlignCenter)
+            self.lyric.setWordWrap(True)
 
-            self.label_bottom = QtWidgets.QLabel(self)
-            self.label_bottom.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
-            self.label_bottom.setWordWrap(True)
-            self.label_bottom.setFont(font)
+        def parent_resized(self):
+            parent = self.parent()
+            self.resize(parent.width(), 64)
+            fg = parent.frameGeometry()
+            self.move(fg.left(), fg.bottom() - parent.control.height() - 64)
 
-            self.time = 0
+        def enterEvent(self, event):
+            self.setStyleSheet(self.style_sheet_fmt % (0, 43, 59, 128))
+            self.shift.show()
+            self.shift.setFixedSize(48, self.height())
+
+        def leaveEvent(self, event):
+            self.shift.hide()
+            self.setStyleSheet(self.style_sheet_fmt % (0, 0, 0, 0))
+
+        def mouseMoveEvent(self, event):
+            pass
 
         def load_lyric(self, lyric):
             self.lyrics = []
-            rows = []
 
+            rows = []
             if isinstance(lyric, str):
                 rows = lyric.splitlines()
-
             for row in rows:
                 try:
                     times = []
@@ -216,53 +242,15 @@ class Music(QtWidgets.QWidget):
                 except:
                     pass
 
-            self.lyrics.sort(key=lambda x: x['time'])
+            self.lyrics.sort(key=lambda x: x['time'], reverse=True)
             self.update()
 
         def update(self, time=0):
-            self.time = time + 0.01
-            self.text_top = ''
-            self.text_bottom = ''
-
-            befor = []
-            for lyric in self.lyrics:
-                if lyric['time'] < time:
-                    befor.append(lyric)
-                else:
-                    break
-            after = self.lyrics[len(befor):]
-
-            text = ''
-            for lyric in befor[::-1]:
-                temp = text + lyric['text'] + '\n'
-                label = self.label_top
-                lw, lh = label.width(), label.height()
-                if (label.fontMetrics().boundingRect(0, 0, lw, lh, label.alignment() |
-                    QtCore.Qt.TextWordWrap, temp[0:-1]).height()) > lh:
-                    break
-                else:
-                    text = temp
-            befor = text.splitlines()[::-1]
-
-            if befor:
-                if len(befor) > 1:
-                    for line in befor[0:-1]:
-                        self.text_top += line + '<br>'
-                self.text_top += '<b style="color:lightgray">%s</b>' % befor[-1]
-            for lyric in after:
-                self.text_bottom += lyric['text'] + '<br>'
-
-            self.label_top.setText(self.text_top)
-            self.label_bottom.setText(self.text_bottom)
-
-        def resizeEvent(self, event):
-            w, h = self.width(), self.height()
-            self.label_top.resize(w, (h+1)//2)
-            self.label_top.move(0, 0)
-            self.label_bottom.resize(w, h//2)
-            self.label_bottom.move(0, (h+1)//2)
-            if self.time:
-                self.update(self.time)
+            if self.lyrics:
+                if self.lyrics[-1]['time'] < time:
+                    self.lyric.setText(self.lyrics.pop()['text'])
+            else:
+                self.lyric.setText('')
 
 
     class ControlBar(QtWidgets.QWidget):

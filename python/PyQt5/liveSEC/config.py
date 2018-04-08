@@ -102,7 +102,7 @@ main_config = {
             },
 
             'lyric': {
-                'background-color': '#6c7478',
+                'background-color': (0, 43, 59, 64),
                 'font-pixel-size': 28,
             },
 
