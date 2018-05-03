@@ -1,87 +1,99 @@
 #!/usr/bin/python3
 
 import requests
-import HTMLParser
+import re
+from HTMLParser import HTMLParser
 
 
-class MyHTMLParser(HTMLParser.HTMLParser):
+class GaoQingLaParser(HTMLParser):
 
     def __init__(self):
         super().__init__()
 
-        self.start = 0
-        self.end = False
+        self.start = False
         self.results = []
 
     def handle_starttag(self, tag, attrs):
-        if self.end:
+        if not self.start:
+            if 'ul' == tag and attrs:
+                for attr in attrs:
+                    if 'id' == attr[0] and 'post_container' == attr[1]:
+                        self.start = True
             return
-
-        if 0 == self.start and \
-                'div' == tag and \
-                attrs and len(attrs) == 1 and 'class' == attrs[0][0] and 'mainleft' == attrs[0][1]:
-            self.start = 1
-        elif 0 == self.start:
-            return
-        else:
-            self.start += 1
 
         if 'a' == tag and attrs:
             title = None
-            href = None
+            url = None
 
             for attr in attrs:
                 if 'title' == attr[0]:
                     title = attr[1]
                 if 'href' == attr[0]:
-                    href = attr[1]
+                    url = attr[1]
+                if title and url:
+                    break
 
-            if title and href:
+            if title and url:
                 for res in self.results:
                     if title == res['title']:
-                        res['href'] = href
+                        res['url'] = url
                         break
                 else:
-                    self.results.append({'title': title, 'href': href})
+                    self.results.append({'title': title, 'url': url})
 
     def handle_startendtag(self, tag, attrs):
-        if self.end or not self.start:
+        if not self.start:
             return
 
         if 'img' == tag and attrs:
-            alt = None
-            src = None
+            title = None
+            img = None
 
             for attr in attrs:
                 if 'alt' == attr[0]:
-                    alt = attr[1]
+                    title = attr[1]
                 if 'src' == attr[0]:
-                    src = attr[1]
+                    img = attr[1]
+                if title and img:
+                    break
 
-            if alt and src:
+            if title and img:
                 for res in self.results:
-                    if alt == res['title']:
-                        res['img'] = src
+                    if title == res['title']:
+                        res['img'] = img
                         break
                 else:
-                    self.results.append({'title': alt, 'img': src})
+                    self.results.append({'title': title, 'img': img})
 
     def handle_endtag(self, tag):
-        if self.start:
-            self.start -= 1
-            if not self.start:
-                self.end = True
+        if self.start and 'ul' == tag:
+            self.start = False
+            raise Exception('end parse')
 
 
 url = 'http://gaoqing.la/'
-r = requests.get(url)
-if not r or r.status_code < 200 or r.status_code > 299:
-    print('requests.get({0}) failure'.format(url))
-else:
-    html_parser = MyHTMLParser()
-    html_parser.feed(r.text)
+try:
+    r = requests.get(url)
+except:
+    r = None
 
-    i = 0
-    for res in html_parser.results:
-        i += 1
-        print(i, res['title'])
+results = []
+if r and r.status_code >= 200 and r.status_code <= 299 and len(r.text) > 4000:
+    html_parser = GaoQingLaParser()
+    try:
+        html_parser.feed(r.text)
+    except:
+        pass
+    results = html_parser.results
+
+for res in results[1:]:
+    try:
+        r = requests.get(res['url'])
+    except:
+        r = None
+    if r:
+        pos = re.search(r'magnet:.+"', r.text).span()
+        print(r.text[pos[0]:pos[1]-1])
+        break
+
+#  <p><span style="color: #ff0000;"><a style="color: #ff0000;" href="magnet:?xt=urn:btih:db15889169126e378150f90e31563c94dfed7f8d&amp;dn=Birds.Without.Names.2017.JAPANESE.1080p.BluRay.x264.DTS-WiKi&amp;tr=http%3A%2F%2Ftracker.trackerfix.com%3A80%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.me%3A2710&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2710">Birds.Without.Names.2017.JAPANESE.1080p.BluRay.x264.DTS-WiKi</a></span></p>
