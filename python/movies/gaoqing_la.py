@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+# -*- coding:utf-8
 
 import requests
 import re
-from HTMLParser import HTMLParser
+import time
+from html.parser import HTMLParser
 
 
 class GaoQingLaParser(HTMLParser):
@@ -71,6 +73,30 @@ class GaoQingLaParser(HTMLParser):
             raise Exception('end parse')
 
 
+class MagnetParser(HTMLParser):
+
+    def __init__(self):
+        super().__init__()
+
+        self.touch = False
+        self.results = []
+
+    def handle_starttag(self, tag, attrs):
+        if 'a' == tag and attrs:
+            for attr in attrs:
+                if 'href' == attr[0]:
+                    if re.search(r'magnet:', attr[1]):
+                        self.touch = True
+                        self.results.append({'magnet': attr[1]})
+
+    def handle_data(self, data):
+        if self.touch:
+            self.results[-1]['title'] = data
+
+    def handle_endtag(self, tag):
+        self.touch = False
+
+
 url = 'http://gaoqing.la/'
 try:
     r = requests.get(url)
@@ -86,14 +112,17 @@ if r and r.status_code >= 200 and r.status_code <= 299 and len(r.text) > 4000:
         pass
     results = html_parser.results
 
-for res in results[1:]:
+for res in results:
     try:
         r = requests.get(res['url'])
     except:
         r = None
-    if r:
-        pos = re.search(r'magnet:.+"', r.text).span()
-        print(r.text[pos[0]:pos[1]-1])
-        break
+    if r and r.status_code >= 200 and r.status_code <= 299 and len(r.text) > 2000:
+        magnet_parser = MagnetParser()
+        magnet_parser.feed(r.text)
+        res['magnets'] = magnet_parser.results
+    else:
+        res['magnets'] = []
+    time.sleep(32)
 
-#  <p><span style="color: #ff0000;"><a style="color: #ff0000;" href="magnet:?xt=urn:btih:db15889169126e378150f90e31563c94dfed7f8d&amp;dn=Birds.Without.Names.2017.JAPANESE.1080p.BluRay.x264.DTS-WiKi&amp;tr=http%3A%2F%2Ftracker.trackerfix.com%3A80%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.me%3A2710&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2710">Birds.Without.Names.2017.JAPANESE.1080p.BluRay.x264.DTS-WiKi</a></span></p>
+# [{'title': xxx, 'url': xxx, 'img': xxx, 'magnets': [{'title': xxx, 'magnet': xxx}, ...]}, ...]
