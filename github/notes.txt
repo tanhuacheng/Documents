@@ -1,3 +1,0 @@
-Documents是一个git仓库，仓库下的仓库不能push，clone只得到一个空文件夹。
-需要时手动clone或pull就好了，或者使用子模块。
-
