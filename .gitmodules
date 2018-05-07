@@ -1,0 +1,3 @@
+[submodule "python/deeplearning_ai/deep-learning-turorial-for-beginners/Sign-Language-Digits-Dataset"]
+	path = python/deeplearning_ai/deep-learning-turorial-for-beginners/Sign-Language-Digits-Dataset
+	url = https://github.com/ardamavi/Sign-Language-Digits-Dataset.git
