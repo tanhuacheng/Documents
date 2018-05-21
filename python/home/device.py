@@ -40,6 +40,8 @@ class TCPServer(object):
                 self.on_received(sock, addr, msg)
             except socket.timeout:
                 pass
+            except:
+                break
         sock.close()
 
     def send(self, sock, msg):
@@ -73,7 +75,3 @@ class Devices(TCPServer):
 
 
 dev = Devices()
-
-import time
-time.sleep(30)
-dev.shutdown()
