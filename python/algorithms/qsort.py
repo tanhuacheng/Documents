@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import random
 
 def _partition(A, p, r, key):
@@ -12,7 +10,7 @@ def _partition(A, p, r, key):
     def _value(x):
         return key(x) if callable(key) else x
 
-    i = random.randint(p, r - 1)
+    i = random.randrange(p, r)
     _swap(i, r - 1)
 
     i = p - 1
@@ -36,7 +34,3 @@ def _qsort(A, p, r, key):
 
 def qsort(A, key=None):
     _qsort(A, 0, len(A), key)
-
-A = [3, 2, 5, 7, 4, 9, 6, 8, 1]
-qsort(A, key=lambda x: -x)
-print(A)
