@@ -11,5 +11,11 @@ int main()
         cout << i << "ok" << endl;
     }
 
+    try {
+        throw runtime_error("error test");
+    } catch (runtime_error err) {
+        cout << err.what() << endl;
+    }
+
     return 0;
 }

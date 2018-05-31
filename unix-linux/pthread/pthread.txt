@@ -1,0 +1,170 @@
+/*******************************************************************************************************/
+线程数据类型(Pthreads data type)
+
+    pthread_t                   线程ID
+    pthread_attr_t              线程属性
+    pthread_mutex_t             互斥量
+    pthread_mutexattr_t         互斥量属性
+    pthread_cond_t              条件变量
+    pthread_condattr_t          条件变量属性
+    pthread_rwlock_t            读写锁
+    pthread_rwlockattr_t        读写锁属性
+    pthread_once_t              一次性初始化控制上下文
+    pthread_key_t               线程特有数据的键
+
+    SUSv3 并未规定如何实现这些数据类型, 可移植的程序应将其视为 "不透明" 数据. 亦即, 程序应避免对此类数据
+类型变量的结构或内容产生依赖. 尤其是, 不能使用 C 语言的比较操作去比较这些类型的变量.
+
+
+/*******************************************************************************************************/
+线程和 errno
+
+    在多线程程序中, 每个线程都有属于自己的 errno. 需要使用或声明 errno 的程序必须包含 <errno.h>.
+
+
+/*******************************************************************************************************/
+Pthreads 函数返回值
+
+    从系统调用和库函数中返回状态, 传统的做法是: 返回 0 表示成功, 返回 -1 表示失败, 并设置 errno 以标识错
+误原因. Pthreads API 则反其道而行之. 所有 Pthreads 函数均以返回 0 表示成功, 返回正值表示失败(与 errno 中
+的值含义相同).
+
+
+/*******************************************************************************************************/
+编译 Pthreads 程序
+
+    cc -pthread
+
+    使用该选项的效果如下:
+        1. 定义 _REENTRANT 预处理宏. 这会公开少数可重入函数的声明.
+        2. 程序会与库 libpthread 进行链接(等价于 -lpthread)
+
+
+/*******************************************************************************************************/
+线程的分离
+
+    若线程并未分离(detached), 则必须使用 pthread_join() 来连接. 如果未能连接, 那么线程终止时将产生僵尸线
+程. 除了浪费系统资源以外, 僵尸线程若积累过多, 应用将再也无法创建新的线程.
+    有时, 程序并不关心线程的返回状态, 只是希望系统在线程终止时能够自动清理并移除之. 在这种情况下, 可以调
+用 pthread_detach() 并向 thread 参数传入指定线程的标识符, 将该线程标记为分离状态. 例如:
+
+    pthread_detach(pthread_self());
+或
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&tid, &attr, thread_func, NULL);
+    pthread_attr_destroy(&attr);
+
+    其它线程调用了 exit(), 或是主线程执行 return 语句时, 进程的所有线程会立即终止.
+
+
+/*******************************************************************************************************/
+互斥量
+
+    加锁和解锁的开销比较低廉, 使用互斥量对于大部分应用程序的性能并无显著影响.
+    对于使用 PTHREAD_MUTEX_INITIALIZER 静态初始化的互斥量, 无需调用 pthread_mutex_destroy().
+
+
+/*******************************************************************************************************/
+条件变量
+
+    每个条件变量都有与之相关的判断条件, 在测试该条件时大部分情况下应使用 while 而不是 if 来控制对
+pthread_cond_wait() 的调用. 因为当代码从 pthread_cond_wait() 返回时, 并不能确定条件的状态, 在条件不满足
+的情况下继续休眠等待.
+    1. 其它等待该条件的线程先醒来, 并改变了条件状态;
+    2. 可能会发生虚假唤醒的情况, 在一些多处理器系统上, 为确保高效率实现而采用的技术可能会导致此类虚假唤
+       醒, 且 SUSv3 对此予以明确认可.
+
+
+/*******************************************************************************************************/
+一次性初始化
+
+    pthread_once(pthread_once_t* ponce_control, void (*init) (void));
+    利用 once_control 的状态, 函数 pthread_once() 可以保证无论有多少线程对 pthread_once() 调用了多少次,
+也只会执行一次 init 指向的函数.
+    once_control 必须是指向初始化为 PTHREAD_ONCE_INIT 的静态变量指针.
+    pthread_once_t once_control = PTHREAD_ONCE_INIT;
+
+
+/*******************************************************************************************************/
+线程特有数据
+
+    pthread_once_t once = PTHREAD_ONCE_INIT;
+    pthread_key_t key;
+
+    void destructor (void* buf) {
+        free(buf);
+    }
+
+    void create_key (void) {
+        pthread_key_create(&key, destructor);
+    }
+
+    thread_func () {
+        pthread_once(&once, create_key);
+        if (NULL == (buf = pthread_getspecific(key))) {
+            buf = malloc(BUFF_LEN);
+            pthread_setspecific(key, buf);
+        }
+        // use buf
+    }
+
+
+/*******************************************************************************************************/
+线程局部存储
+
+    比线程特有数据简单, 只需要在全局或静态变量的声明中包含 __thread 说明符即可
+    static __thread type name;
+    带有这种说明符的变量, 每个线程都拥有一份该变量的拷贝. 它将一直存在, 直到线程终止, 到时会自动释放这一
+存储.
+    1. 如果变量声明中使用了 static 或 extern, 那么 __thread 必须紧随其后;
+    2. 线程局部变量在声明时可设置一个初始值;
+    3. 可以使用 C 语言的取址操作来获取线程局部变量的地址.
+
+
+/*******************************************************************************************************/
+线程取消
+
+    有时候, 需要将一个线程取消(cancel). 亦即, 向一个线程发送一个请求, 要求其立即退出. 比如一个线程正在执
+行一个运算, 一旦某个线程检测到错误或事件发生, 需要其它线程退出, 取消线程的功能这时就能派上用场.
+    int pthread_cancel(pthread_t thread);   // 向 thread 指定的线程发送一个取消请求, 并立即返回
+    int pthread_setcancelstate(int state, int* oldstate);
+        state:
+            PTHREAD_CANCEL_DISABLE      线程不可取消, 收到的取消请求将被挂起直到 state 被设为启用
+            PTHREAD_CANCEL_ENABLE       线程可以取消
+    int pthread_setcanceltype(int type, int* oldtype);
+        type:
+            PTHREAD_CANCEL_ASYNCHRONOUS 立即取消, 但可能在任何时点取消
+            PTHREAD_CANCEL_DEFERED      延迟取消, 取消请求保持挂起状态, 直到到达取消点
+
+    取消点是调用了由实现定义的一组函数之一, 例如 recvfrom(), pthread_cond_wait() 等. 如果一个线程中没有
+取消点, 可周期性地调用 void pthread_testcancel (void); 函数, 以确保能响应其他线程向其发送的取消请求.
+
+    清理函数, 每个线程都可以拥有一个清理函数栈. 当线程遭遇取消时, 会沿该栈自顶向下执行清理函数.
+    void pthread_cleanup_push (void (*routine) (void* arg));
+    void pthread_cleanup_pop (int execute); // 如果 execute 非零, 则会执行上一个 push 的清理函数
+    包括 linux 在内的很多系统使用宏的方式来实现这两个操作, 且可展开为 { 和 } 所包裹的语句序列. 所以这两
+个操作必须属于同一个语法块, 而且必须一一对应, 在两者之间定义的变量的作用域将限制于此.
+    若线程因执行 pthread_exit() 而终止, 则会自动执行未弹出的所有清理函数. 线程正常返回(return)时不会执行
+清理函数.
+
+    线程取消后如果线程未分离(not detached), 则必须由其它线程对其进行连接(join). 连接之后, 返回至
+pthread_join() 的第二个参数的值将是一个特殊值: PTHREAD_CANCELED
+
+    作为一般原则, 可异步取消(立即取消)的线程不应分配任何资源, 也不能获取互斥量. 这导致大量库函数不能使用
+(其中有3个例外: pthread_cancel(), pthread_setcancelstate(), pthread_setcanceltype(). 它们是异步取消安全
+的).
+
+
+/*******************************************************************************************************/
+更多细节
+
+    1. 线程栈
+    2. 线程和信号
+    3. 线程和进程控制
+    4. 实时调度
+    5. 进程共享互斥量和条件变量
+    6. 高级线程同步原语: 障碍(barrier), 读写锁(read-write lock), 自旋锁(spin lock)
+
+
+# vim:set tw=105:
