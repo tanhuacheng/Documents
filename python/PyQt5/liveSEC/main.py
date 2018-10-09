@@ -48,10 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.container = QtWidgets.QStackedWidget()
         self.container_scene = QtWidgets.QPushButton('scene')           # TODO
         self.container_music = Music(config['container']['music'])
-        self.container_weather = Weather(None)
+        #  self.container_weather = Weather(None)
         self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
-        self.container.addWidget(self.container_weather)
+        #  self.container.addWidget(self.container_weather)
         self.container.setCurrentWidget(self.container_music)
 
         self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed

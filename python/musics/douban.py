@@ -6,13 +6,11 @@ _URL_CHART = 'https://music.douban.com/chart'
 _URL_PLAYLIST = 'https://music.douban.com/j/artist/playlist'
 
 
-def fetch_chart():
+def fetch_songs():
     try:
-        req = requests.get(_URL_CHART)
-        charset = re.search(r'charset=(\S+)(?=[ ;"])', req.text)
-        charset = charset.groups() if charset else None
-        if charset:
-            req.charset = charset[0]
+        req = requests.get(_URL_CHART, timeout=32)
+        if not req or req.status_code != requests.codes.ok or not req.text:
+            return []
     except:
         return []
 
@@ -27,6 +25,7 @@ def fetch_chart():
         if sid:
             playlist = playlist[sid.end():]
             sid = sid.groups()
+
         if sid:
             sids.append(sid[0])
         else:
@@ -36,7 +35,7 @@ def fetch_chart():
         return []
 
     try:
-        req = requests.post(_URL_PLAYLIST, data={'sids': ','.join(sids)})
+        req = requests.post(_URL_PLAYLIST, data={'sids': ','.join(sids)}, timeout=32)
         songs = req.json()
         if 'r' in songs and songs['r'] == 0 and 'songs' in songs:
             return songs['songs']

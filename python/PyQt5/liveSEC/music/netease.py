@@ -27,6 +27,8 @@ class NetEase(object):
             'Host': 'music.163.com',
             'Origin': 'https://music.163.com',
             'Referer': 'https://music.163.com/',
+            'Cookie': '_ntes_nuid=9db72fc11d99fed5a10e136dfec5aa35; usertrack=ezq0plsd5GwN1nHvAyDTAg==; _ntes_nnid=feee30eccb2a533cb0dd9fc5ee4035cf,1528685677477; _ga=GA1.2.1139753969.1528685678; JSESSIONID-WYYY=ywPT%2FqUqf2cG6Vb%5CiIc2DYnIiAXzNeNWjlhkOpnZ0YEd6JR%2BjH05kxF8MWvW281TwG2Y5%2B5qHkzJ%2F8nH8i6D6HjuvERrCCMQEsqn2SQ0ZZF%2FOKDkjet4ktm1kxkwJJvHA8iRYO%5Co4%2F5MQkSE%2BtTV%2BXp3NwES8sjQPCzsud6uGa6lU%2BJa%3A1538988639796; _iuqxldmzr_=32; WM_NI=BZIBXRHl6hc97SepP0CUEWjOBPOEE%2FPU6RT2eYxRC8Y5NocrXV1iIRW9xIjasHKleKZWLZIkrNlGR%2FZMF3VXgcY%2B6OT6SQ80S3KqmxeI8qZdTCqBiNQ3HNVbTu3%2Ff1FmSmw%3D; WM_NIKE=9ca17ae2e6ffcda170e2e6eeb8c166b6a9a7b3ea49a39e8ea3d85b928a9b84f7458c97acd5d47b9c9df78db32af0fea7c3b92a828687a3db5a8cb4fa89e233f58dab91d33c818b8bb8e945829081a6c825948bfab3d73aa787b8b3c2349beb8290e27a9c8aff8acc5a95e7b8aae96bb198858de8419a8984bbcc61b292a4a8d1259a938ad4d554a5bd97ccb54598ea9db2bb3c91ed8592f074a797f892d970989dbfa3ec4693ed88afd56a98abfdd0e53b86b39d8ef637e2a3; WM_TID=E7AARMKrMBJBBUERRENpbTYZpF%2BCTs0g',
+
             'User-Agent':
                 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                 'Ubuntu Chromium/62.0.3202.75 Chrome/62.0.3202.75 Safari/537.36'
@@ -135,6 +137,7 @@ class NetEase(object):
     def __save(self):
         try:
             if self.__path_cookies:
+                print(self.__session.cookies)
                 self.__session.cookies.save()
             if self.__path_login:
                 with open(self.__path_login, 'w') as f:
@@ -216,9 +219,11 @@ class NetEase(object):
             r.encoding = 'utf-8'
             r = json.loads(r.text)
         except Exception as e:
+            print(e)
             return None
 
         if not 'code' in r or r['code'] < 200 or r['code'] > 299:
+            print(r)
             return None
 
         return r
