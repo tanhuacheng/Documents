@@ -11,9 +11,9 @@ import douban
 class Music:
 
     def __init__(self, dir_):
-        def _mkdir(path):
+        def _mkdir(dir_):
             try:
-                os.mkdir(path)
+                os.mkdir(dir_)
             except FileExistsError:
                 pass
             except:
@@ -24,13 +24,10 @@ class Music:
         self._dir_lyric = os.path.join(dir_, 'lyric')
         self._dir_picture = os.path.join(dir_, 'picture')
 
-        try:
-            _mkdir(self._dir)
-            _mkdir(self._dir_music)
-            _mkdir(self._dir_lyric)
-            _mkdir(self._dir_picture)
-        except:
-            raise
+        _mkdir(self._dir)
+        _mkdir(self._dir_music)
+        _mkdir(self._dir_lyric)
+        _mkdir(self._dir_picture)
 
         self._db_conn = sqlite3.connect(os.path.join(dir_, 'library.db'))
         self._db_cursor = self._db_conn.cursor()
@@ -38,11 +35,11 @@ class Music:
         self._db_cursor.execute('''
             CREATE TABLE IF NOT EXISTS music (
                 title           TEXT PRIMARY KEY NOT NULL,
-                artist_name     TEXT,
+                artist          TEXT,
                 play_length     TEXT,
-                file_music      TEXT,
-                file_lyric      TEXT,
-                file_picture    TEXT,
+                music           TEXT NOT NULL,
+                lyrics          TEXT,
+                picture         TEXT,
                 labels          TEXT
             );
         ''')
@@ -61,105 +58,95 @@ class Music:
                 continue
 
             for song in songs:
-                # title must be present
+                url = song.get('url')
+                if not url:
+                    continue
+
                 title = song.get('title')
                 if not title:
                     continue
 
-                artist_name = song.get('artist_name')
-                play_length = song.get('play_length')
-
-                try:
-                    artist_name = song['artist_name']
-                    play_length = song['play_length']
-
-                    url = song['url']
-                    picture = song['picture']
-
-                    file_name = title + re.search(r'\.\w+$', url).group()
-
-                    if os.access(file_name, os.F_OK):
-                        continue
-
-                    req = requests.get(url, timeout=32)
-                    with open(os.path.join(self._data_dir, file_name), 'wb') as f:
-                        f.write(req.content)
-
-                    self._db.update((title, artist_name, play_length, file_name, 0))
-                except:
+                dbtitle = self._db_cursor.execute('SELECT title FROM music WHERE title=?', (title,))
+                if dbtitle.fetchone():
                     continue
 
-    #  def list(self):
-    #      return self._db.list()
+                file_music = re.search(r'\w+\.\w+$', url)
+                file_music = (fetcher['domain'] + '_' + file_music.group()) if file_music else None
+                if not file_music:
+                    continue
 
-    #  def remove(self, title):
-    #      file_name = self._db.remove(title)
-    #      if file_name:
-    #          os.remove(os.path.join(self._data_dir, file_name))
+                file_music_full = os.path.join(self._dir_music, file_music)
+                if not os.access(file_music_full, os.F_OK):
+                    try:
+                        req = requests.get(url, timeout=32)
+                        with open(file_music_full, 'wb') as f:
+                            f.write(req.content)
+                    except:
+                        continue
 
-    #  def set_favorite(self, title, favorite):
-    #      self._db.set_favorite(title, favorite)
+                lyrics = song.get('lyrics')
+                if lyrics:
+                    file_lyrics = re.search(r'^\w+', file_music).group() + '.lyc'
+                    file_lyrics_full = os.path.join(self._dir_lyric, file_lyrics)
+                    if not os.access(file_lyrics_full, os.F_OK):
+                        with open(file_lyrics_full, 'wb') as f:
+                            f.write(lyrics.encode())
+                else:
+                    file_lyrics = None
 
+                picture = song.get('picture')
+                if picture:
+                    picture = picture[0]
+                    file_picture = re.search(r'\w+\.\w+$', picture)
+                    file_picture = file_picture.group() if file_picture else None
+                    file_picture = fetcher['domain'] + '_' + file_picture if file_picture else None
+                    if file_picture:
+                        file_picture_full = os.path.join(self._dir_picture, file_picture)
+                        if not os.access(file_picture_full, os.F_OK):
+                            try:
+                                req = requests.get(picture, timeout=32)
+                                with open(file_picture_full, 'wb') as f:
+                                    f.write(req.content)
+                            except:
+                                file_picture = None
+                else:
+                    file_picture = None
 
-    #  class DB:
-    #
-    #      def __init__(self, data_dir):
-    #
-    #      def list(self):
-    #          return list(self._cursor.execute('SELECT * FROM musics'))
-    #
-    #      def update(self, data):
-    #          self._cursor.execute('INSERT OR REPLACE INTO musics VALUES (?,?,?,?,?)', data)
-    #          self._conn.commit()
-    #
-    #      def remove(self, title):
-    #          file_name = self._cursor.execute(
-    #                  'SELECT file_name FROM musics WHERE title=?', (title,)).fetchone()
-    #          if file_name:
-    #              self._cursor.execute('DELETE FROM musics WHERE title=?', (title,))
-    #              self._conn.commit()
-    #
-    #          return file_name[0] if file_name else None
-    #
-    #      def set_favorite(self, title, favorite):
-    #          self._cursor.execute('UPDATE musics SET favorite=? WHERE title=?', (favorite, title))
-    #          self._conn.commit()
+                artist = song.get('artist_name')
+                play_length = song.get('play_length')
+                labels = json.dumps([])
 
+                self._db_cursor.execute('INSERT INTO music VALUES (?,?,?,?,?,?,?)',
+                    (title, artist, play_length, file_music, file_lyrics, file_picture, labels))
+                self._db_conn.commit()
 
+    def _convert(self, x):
+        return x[0:3] + \
+               (os.path.join(self._dir_music, x[3]) if x[3] else None,) + \
+               (os.path.join(self._dir_lyric, x[4]) if x[4] else None,) + \
+               (os.path.join(self._dir_picture, x[5]) if x[5] else None,) + \
+               (json.loads(x[6]),)
 
-{
-    'title': 'Sally Baby (塞利 宝贝)',
-    'artist_name': '梁晓雪',
-    'play_length': '4:11',
+    def fetchall(self):
+        return map(self._convert, self._db_cursor.execute('SELECT * FROM music'))
 
-    'url': 'http://mr3.doubanio.com/faa2bfd2a3c8822804ac56fb93435019/0/fm/song/p2861155_128k.mp3',
-    'lyrics': '词/曲/唱：梁晓雪\n\n',
-    'picture': ['https://img1.doubanio.com/view/site/large/public/3a2c39f61bde3db.jpg'],
+    def remove(self, title):
+        song = self._db_cursor.execute('SELECT * FROM music WHERE title=?', (title,)).fetchone()
+        if song:
+            song = self._convert(song)
+            for f in song[3:6]:
+                if f:
+                    try:
+                        os.remove(f)
+                    except:
+                        pass
+            self._db_cursor.execute('DELETE FROM music WHERE title=?', (title,))
+            self._db_conn.commit()
 
-    'publish_date': '2018-09-29',
-    'styles': ['Bluse蓝调布鲁斯', 'City-Pop城市流行'],
+    def set_labels(self, title, labels):
+        self._db_cursor.execute('UPDATE music SET labels=? WHERE title=?',
+                                (json.dumps(list(set(labels))), title))
+        self._db_conn.commit()
 
-    'rec_url': 'https://site.douban.com/101191/?s=734879',
-    'subject_id': '0',
-    'sid': '734879',
-    'is_downloadable': False,
-    'is_collected': False,
-    'play_count': '1871',
-    'is_selling': True,
-    'is_commentable': True,
-    'label': '',
-
-    'artist': {
-        'name': '梁晓雪',
-        'cover_color': ['#c4aaff', '#2c2933', ''],
-        'url': 'https://site.douban.com/kulu/',
-        'style': '民谣 Folk',
-        'song_count': 184,
-        'genre_url': 'https://music.douban.com/artists/genre_page/4/',
-        'id': '101191',
-        'is_royalty_artist': True,
-        'follower': 70284,
-        'picture': 'https://img1.doubanio.com/view/site/large/public/3a2c39f61bde3db.jpg',
-        'kind': 'artist'
-    },
-}
+        if self._db_conn.total_changes > 0:
+            self._labels = self._labels | set(labels)
