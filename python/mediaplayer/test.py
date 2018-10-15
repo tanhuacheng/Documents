@@ -19,4 +19,5 @@ class MediaPlayer(mediaplayer.MediaPlayer):
 
 
 mplayer = MediaPlayer()
-mplayer.play('./../musics/data/music/douban_p2840128_128k.mp3')
+mplayer.play('../musics/data/music/douban_p2842584_128k.mp3')
+mplayer.play('../musics/data/music/douban_p2842584_128k.mp3')

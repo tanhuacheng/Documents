@@ -21,15 +21,14 @@ class MediaPlayer(Event):
     def __init__(self):
         self._instance = vlc.Instance()
         self._player = vlc.MediaPlayer(self._instance)
+        self._media = None
+        self._length = 0
 
         self._event = self._player.event_manager()
         self._event.event_attach(vlc.EventType.MediaPlayerLengthChanged, self._length_changed)
         self._event.event_attach(vlc.EventType.MediaPlayerPositionChanged, self._position_changed)
         self._event.event_attach(vlc.EventType.MediaPlayerEndReached, self._end_reached)
         self._event.event_attach(vlc.EventType.MediaPlayerAudioVolume, self._audio_volume)
-
-        self._media = None
-        self._length = 0
 
     def play(self, mrl=None):
         if mrl:
@@ -44,9 +43,8 @@ class MediaPlayer(Event):
             self._player.pause()
 
     def seek(self, value):
-        if self._media:
-            self._player.set_position(value/100)
-            self.on_position_changed(value)
+        self._player.set_position(value/100)
+        self.on_position_changed(value)
 
     def volume(self):
         return self._player.audio_get_volume()
