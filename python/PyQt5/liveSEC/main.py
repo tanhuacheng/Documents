@@ -2,10 +2,8 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from toolbar import ToolBar
 from navigation import Navigation
 from music.music import Music
-from weather.weather import Weather
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -18,11 +16,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(*config['minimum-size'])
 
         ag = QtWidgets.QDesktopWidget().availableGeometry()
-        w, h = map(lambda x: int(x*3/4), (ag.width(), ag.height()))
+        w, h = map(lambda x: round(x*3/4), (ag.width(), ag.height()))
         if w*0.618 > h:
-            w = int(h/0.618 + 0.5)
+            w = round(h/0.618)
         else:
-            h = int(w*0.618 + 0.5)
+            h = round(w*0.618)
+
         self.resize(w, h)
         fg = self.frameGeometry()
         fg.moveCenter(ag.center())
@@ -31,51 +30,38 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shortcut_quit = QtWidgets.QShortcut(QtGui.QKeySequence(config['shortcut-quit']), self)
         self.shortcut_quit.activated.connect(QtCore.QCoreApplication.instance().quit)
 
-        self.vlayout = QtWidgets.QVBoxLayout()
-        self.vlayout.setSpacing(0)
-        self.vlayout.setContentsMargins(0, 0, 0, 0)
-
-        self.toolbar = ToolBar(config['toolbar'])
-        self.vlayout.addWidget(self.toolbar, config['v-stretch-toolbar'])
-
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.setSpacing(0)
+        self.hlayout.setContentsMargins(0, 0, 0, 0)
 
         self.navigation = Navigation(config['navigation'])
         self.navigation.set_current_item('music')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
-        self.container_scene = QtWidgets.QPushButton('scene')           # TODO
         self.container_music = Music(config['container']['music'])
-        #  self.container_weather = Weather(None)
-        self.container.addWidget(self.container_scene)
         self.container.addWidget(self.container_music)
-        #  self.container.addWidget(self.container_weather)
         self.container.setCurrentWidget(self.container_music)
 
         self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed
 
         self.hlayout.addWidget(self.container, config['h-stretch-container'])
-        self.vlayout.addLayout(self.hlayout, config['v-stretch-container'])
 
         self.widget = QtWidgets.QWidget()
-        self.widget.setLayout(self.vlayout)
+        self.widget.setLayout(self.hlayout)
 
         self.navigation_folder = self.NavigationFolder(self.widget, config['navigation-folder'])
-        self.navigation_folder.setText('<')
-        self.navigation_folder.folded = False
+        self.navigation_folder.setText('>')
+        self.navigation_folder.folded = True
         self.navigation_folder.clicked.connect(self.on_navigation_folder_clicked)
+
+        self.navigation.hide()
 
         self.setCentralWidget(self.widget)
 
     def on_navigation_current_item_changed(self, obj, item_id):
-        if item_id == 'scene':
-            self.container.setCurrentWidget(self.container_scene)
-        elif item_id == 'music':
+        if item_id == 'music':
             self.container.setCurrentWidget(self.container_music)
-        elif item_id == 'weather':
-            self.container.setCurrentWidget(self.container_weather)
 
     def on_navigation_folder_clicked(self):
         if self.navigation_folder.folded:
@@ -103,7 +89,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.navigation_folder.resize(w, h)
 
-        top = int(self.toolbar.height() + winh/2 - h/2)
+        top = int(winh/2 - h/2)
         left = int((winw - w) if not self.navigation_folder.folded else 0)
         self.navigation_folder.move(left, top)
 
@@ -127,5 +113,6 @@ if __name__ == '__main__':
     import config
 
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow(config.main_config).show()
+    win = MainWindow(config.main_config)
+    win.show()
     sys.exit(app.exec_())

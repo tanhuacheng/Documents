@@ -17,16 +17,8 @@ main_config = {
     'minimum-size': (768, 475),
     'shortcut-quit': 'CTRL+W',
 
-    'v-stretch-toolbar': 1,
-    'v-stretch-container': 15,
-
     'h-stretch-navigation': 1,
     'h-stretch-container': 7,
-
-    'toolbar': {
-        'minimum-height': 48,
-        'background-color': '#272930',
-    },
 
     'navigation': {
         'minimum-width': 120,
@@ -60,32 +52,12 @@ main_config = {
 
         'items': (
             {
-                'id': 'scene',
-                'text': '情景',
-                'font-pixel-size': 18,
-                'icones': {
-                    'normal': os.path.join(icones_dir, 'nav_scene_normal.png'),
-                    'active': os.path.join(icones_dir, 'nav_scene_active.png'),
-                },
-            },
-
-            {
                 'id': 'music',
-                'text': '音乐',
+                'text': 'Music',
                 'font-pixel-size': 18,
                 'icones': {
                     'normal': os.path.join(icones_dir, 'nav_music_normal.png'),
                     'active': os.path.join(icones_dir, 'nav_music_active.png'),
-                },
-            },
-
-            {
-                'id': 'weather',
-                'text': '天气',
-                'font-pixel-size': 18,
-                'icones': {
-                    'normal': os.path.join(icones_dir, 'nav_weather_normal.png'),
-                    'active': os.path.join(icones_dir, 'nav_weather_active.png'),
                 },
             },
         ),
