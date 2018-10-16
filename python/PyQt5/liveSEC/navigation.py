@@ -3,7 +3,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 
-class Navigation(QtWidgets.QWidget):
+class QNavigation(QtWidgets.QWidget):
 
     def __init__(self, config):
         super().__init__()

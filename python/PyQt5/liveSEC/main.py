@@ -2,8 +2,8 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from navigation import Navigation
-from music.music import Music
+from navigation import QNavigation
+from music.music import QMusic
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -34,12 +34,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hlayout.setSpacing(0)
         self.hlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.navigation = Navigation(config['navigation'])
+        self.navigation = QNavigation(config['navigation'])
         self.navigation.set_current_item('music')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
-        self.container_music = Music(config['container']['music'])
+        self.container_music = QMusic(config['container']['music'])
         self.container.addWidget(self.container_music)
         self.container.setCurrentWidget(self.container_music)
 

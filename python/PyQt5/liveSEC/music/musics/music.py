@@ -5,7 +5,7 @@ import requests
 import re
 from functools import reduce
 
-import douban
+from . import douban
 
 
 class Music:
@@ -142,6 +142,9 @@ class Music:
                         pass
             self._db_cursor.execute('DELETE FROM music WHERE title=?', (title,))
             self._db_conn.commit()
+
+    def get_labels(self):
+        return self._labels.copy()
 
     def set_labels(self, title, labels):
         self._db_cursor.execute('UPDATE music SET labels=? WHERE title=?',

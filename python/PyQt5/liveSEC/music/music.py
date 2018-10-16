@@ -1,11 +1,11 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-import vlc
-from .netease import NetEase
+from .musics.music import Music
+from .mediaplayer.mediaplayer import MediaPlayer
 
 
-class Music(QtWidgets.QWidget):
+class QMusic(QtWidgets.QWidget):
 
     def __init__(self, config):
         super().__init__()
@@ -17,31 +17,30 @@ class Music(QtWidgets.QWidget):
         self.layout2 = QtWidgets.QVBoxLayout()
         self.layout2.setSpacing(0)
         self.layout2.setContentsMargins(0, 0, 0, 0)
+
         self.layout2.addWidget(self.tree_song_list)
         self.layout2.addWidget(self.control)
 
         self.setLayout(self.layout2)
-        self.lyric = self.Lyric(self)
 
-        self.music_account = self.MusicAccount(config['music-account'])
-        if not self.music_account.is_login():
-            self.music_account.login()
+        self.songs = Music(config['musics']['cache-dir'])
+        self.songs.update() # this would take a while
 
-        for lst in self.music_account.get_song_lists():
-            root = QtWidgets.QTreeWidgetItem(self.tree_song_list, [lst['name']])
-            root.playlist = lst['detail']
-            for music in root.playlist:
-                artists = ''
-                ar = music['artists'] if 'artists' in music else music['ar']
-                for artist in ar:
-                    artists += artist['name']
-                    artists += '/'
-                if len(artists):
-                    artists = artists[0:-1]
-                item = QtWidgets.QTreeWidgetItem(root, [music['name'], artists])
-                item.music = music
+        songs = list(self.songs.fetchall())
+        for label in self.songs.get_labels():
+            root = QtWidgets.QTreeWidgetItem(self.tree_song_list, [str(label)])
+            root.playlist = list(filter(lambda x: label in x[-1], songs))
+            for song in root.playlist:
+                item = QtWidgets.QTreeWidgetItem(root, song[0:2])
+                item.music = song
 
-        self.media_player = self.MediaPlayer()
+        root = QtWidgets.QTreeWidgetItem(self.tree_song_list, ['Others'])
+        root.playlist = list(filter(lambda x: not x[-1], songs))
+        for song in root.playlist:
+            item = QtWidgets.QTreeWidgetItem(root, song[0:2])
+            item.music = song
+
+        self.media_player = self.QMediaPlayer()
         self.media_player.lengthChanged.connect(self.on_length_changed)
         self.media_player.positionChanged.connect(self.on_position_changed)
         self.media_player.endReached.connect(self.on_end_reached)
@@ -62,9 +61,6 @@ class Music(QtWidgets.QWidget):
         self.control.callback_get_volume = self.media_player.volume
         self.control.volumeChanged.connect(self.media_player.set_volume)
 
-    def resizeEvent(self, event):
-        self.lyric.parent_resized()
-
     def on_playlist_double_clicked(self, item, column):
         parent = item.parent()
         if parent:
@@ -73,12 +69,12 @@ class Music(QtWidgets.QWidget):
             if item.music != self.media_player.current:
                 self.control.label_total_time.setText('00:00')
                 self.control.label_played_time.setText('00:00')
+
                 block = self.control.progress_bar.blockSignals(True)
                 self.control.progress_bar.setValue(0)
                 self.control.progress_bar.blockSignals(block)
-                mrl = self.music_account.get_music_url(item.music)
-                self.lyric.load_lyric(self.music_account.get_music_lyric(item.music['id']))
-                self.media_player.play(mrl)
+
+                self.media_player.play(item.music[3])
                 self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
                 self.media_player.current = item.music
             elif self.control.stack_play_pause.currentWidget() == self.control.button_play:
@@ -94,12 +90,12 @@ class Music(QtWidgets.QWidget):
             self.media_player.current = self.media_player.playlist[index]
             self.control.label_total_time.setText('00:00')
             self.control.label_played_time.setText('00:00')
+
             block = self.control.progress_bar.blockSignals(True)
             self.control.progress_bar.setValue(0)
             self.control.progress_bar.blockSignals(block)
-            mrl = self.music_account.get_music_url(self.media_player.current)
-            self.lyric.load_lyric(self.music_account.get_music_lyric(self.media_player.current['id']))
-            self.media_player.play(mrl)
+
+            self.media_player.play(self.media_player.current[3])
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
     def on_button_play_clicked(self):
@@ -122,12 +118,12 @@ class Music(QtWidgets.QWidget):
             self.media_player.current = self.media_player.playlist[index]
             self.control.label_total_time.setText('00:00')
             self.control.label_played_time.setText('00:00')
+
             block = self.control.progress_bar.blockSignals(True)
             self.control.progress_bar.setValue(0)
             self.control.progress_bar.blockSignals(block)
-            mrl = self.music_account.get_music_url(self.media_player.current)
-            self.lyric.load_lyric(self.music_account.get_music_lyric(self.media_player.current['id']))
-            self.media_player.play(mrl)
+
+            self.media_player.play(self.media_player.current[3])
             self.control.stack_play_pause.setCurrentWidget(self.control.button_pause)
 
     def on_length_changed(self, length):
@@ -137,12 +133,11 @@ class Music(QtWidgets.QWidget):
         self.control.label_total_time.setText('%02d:%02d' % (duration // 60, duration % 60))
 
     def on_position_changed(self, position):
-        duration = self.media_player.duration * position
-        self.lyric.update(duration)
-        duration = int(duration + 0.5)
+        duration = round(self.media_player.duration * position / 100)
         self.control.label_played_time.setText('%02d:%02d' % (duration // 60, duration % 60))
+
         block = self.control.progress_bar.blockSignals(True)
-        self.control.progress_bar.setValue(int(100*position + 0.5))
+        self.control.progress_bar.setValue(position)
         self.control.progress_bar.blockSignals(block)
 
     def on_end_reached(self):
@@ -164,93 +159,6 @@ class Music(QtWidgets.QWidget):
                 width = config['column-width'][i]
                 if width > 0:
                     self.setColumnWidth(i, width)
-
-
-    class Lyric(QtWidgets.QWidget):
-
-        def __init__(self, parent):
-            super().__init__(parent)
-
-            self.shift = QtWidgets.QSpinBox()
-            self.lyric = QtWidgets.QLabel()
-
-            self.layout = QtWidgets.QHBoxLayout()
-            self.layout.setSpacing(0)
-            self.layout.setContentsMargins(0, 0, 0, 0)
-            self.layout.addWidget(self.lyric)
-            self.layout.addWidget(self.shift)
-            self.setLayout(self.layout)
-
-            self.style_sheet_fmt = '''
-                QWidget {
-                    background-color: rgb(%d, %d, %d, %d);
-                }
-                QLabel {
-                    color: blue;
-                }
-            '''
-            self.setStyleSheet('QWidget { background-color: rgb(0, 0, 0, 0); }')
-
-            self.shift.setMinimum(-50)
-            self.shift.setMaximum(+50)
-            self.shift.hide()
-
-            self.lyric.setStyleSheet('QLabel { color: blue; }')
-            font = QtGui.QFont()
-            font.setPixelSize(24)
-            self.lyric.setFont(font)
-
-            self.lyric.setAlignment(QtCore.Qt.AlignCenter)
-            self.lyric.setWordWrap(True)
-
-        def parent_resized(self):
-            parent = self.parent()
-            self.resize(parent.width(), 64)
-            fg = parent.frameGeometry()
-            self.move(fg.left(), fg.bottom() - parent.control.height() - 64)
-
-        def enterEvent(self, event):
-            self.setStyleSheet(self.style_sheet_fmt % (0, 43, 59, 128))
-            self.shift.show()
-            self.shift.setFixedSize(48, self.height())
-
-        def leaveEvent(self, event):
-            self.shift.hide()
-            self.setStyleSheet(self.style_sheet_fmt % (0, 0, 0, 0))
-
-        def mouseMoveEvent(self, event):
-            pass
-
-        def load_lyric(self, lyric):
-            self.lyrics = []
-
-            rows = []
-            if isinstance(lyric, str):
-                rows = lyric.splitlines()
-            for row in rows:
-                try:
-                    times = []
-                    while True:
-                        l, r = row.find('['), row.find(']')
-                        m, s = row[l+1:r].split(':')
-                        times.append(float(m)*60 + float(s))
-                        row = row[r+1:]
-                        if not (row.find('[') >= 0 and row.find(']') >= 0):
-                            break
-                    for time in times:
-                        self.lyrics.append({'time': time, 'text': row})
-                except:
-                    pass
-
-            self.lyrics.sort(key=lambda x: x['time'], reverse=True)
-            self.update()
-
-        def update(self, time=0):
-            if self.lyrics:
-                if self.lyrics[-1]['time'] < time:
-                    self.lyric.setText(self.lyrics.pop()['text'])
-            else:
-                self.lyric.setText('')
 
 
     class ControlBar(QtWidgets.QWidget):
@@ -467,126 +375,24 @@ class Music(QtWidgets.QWidget):
                     return super().styleHint(hint, *args, **kwargs)
 
 
-    class MusicAccount(NetEase):
+    class QMediaPlayer(QtCore.QObject, MediaPlayer):
 
-        def __init__(self, config):
-            super().__init__(config['netease-config-dir'])
-            self.config = config
-
-        def login(self):
-            dlg = QtWidgets.QDialog()
-            dlg.setWindowTitle('登录')
-
-            dlg.name_label = QtWidgets.QLabel('用户名:')
-            dlg.name_edit = QtWidgets.QLineEdit()
-            dlg.name_label.setBuddy(dlg.name_edit)
-
-            dlg.passwd_label = QtWidgets.QLabel('密码:')
-            dlg.passwd_edit = QtWidgets.QLineEdit()
-            dlg.passwd_edit.setEchoMode(QtWidgets.QLineEdit.Password)
-            dlg.passwd_label.setBuddy(dlg.passwd_edit)
-
-            dlg.layout = QtWidgets.QHBoxLayout()
-            dlg.layout.addWidget(dlg.name_label)
-            dlg.layout.addWidget(dlg.name_edit)
-            dlg.layout.addWidget(dlg.passwd_label)
-            dlg.layout.addWidget(dlg.passwd_edit)
-
-            dlg.button = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok |
-                                                    QtWidgets.QDialogButtonBox.Cancel)
-            dlg.button.accepted.connect(dlg.accept)
-            dlg.button.rejected.connect(dlg.reject)
-
-            dlg.main_layout = QtWidgets.QVBoxLayout()
-            dlg.main_layout.addLayout(dlg.layout)
-            dlg.main_layout.addWidget(dlg.button)
-
-            dlg.setLayout(dlg.main_layout)
-
-            if dlg.exec() == QtWidgets.QDialog.Accepted:
-                name, passwd = dlg.name_edit.text(), dlg.passwd_edit.text()
-                if len(name) and len(passwd):
-                    return super().login(name, passwd)
-
-            return False
-
-        def get_song_lists(self):
-            song_lists = []
-
-            recommend = self.get_recommend()
-            if recommend:
-                song_list = { 'name': '每日推荐', 'detail': recommend }
-                song_lists.append(song_list)
-
-            lists = self.get_playlists()
-            if lists:
-                for lst in lists:
-                    detail = self.get_playlist_detail(lst['id'], lst['trackCount'])
-                    if detail:
-                        song_list = { 'name': lst['name'], 'detail': detail}
-                        song_lists.append(song_list)
-
-            return song_lists
-
-        def get_music_url(self, music):
-            return self.get_musics_url([music['id']])[0]['url']
-
-
-    class MediaPlayer(QtCore.QObject):
-
-        lengthChanged = QtCore.pyqtSignal(float)
-        positionChanged = QtCore.pyqtSignal(float)
+        lengthChanged = QtCore.pyqtSignal(int)
+        positionChanged = QtCore.pyqtSignal(int)
         endReached = QtCore.pyqtSignal()
         volumeChanged = QtCore.pyqtSignal(int)
 
         def __init__(self):
             super().__init__()
-            self.instance = vlc.Instance()
-            self.player = vlc.MediaPlayer(self.instance)
-            self.em = self.player.event_manager()
-            self.em.event_attach(vlc.EventType.MediaPlayerLengthChanged, self.on_length_changed)
-            self.em.event_attach(vlc.EventType.MediaPlayerPositionChanged, self.on_position_changed)
-            self.em.event_attach(vlc.EventType.MediaPlayerEndReached, self.on_end_reached)
-            self.em.event_attach(vlc.EventType.MediaPlayerAudioVolume, self.on_volume_changed)
 
-            self.media = None
-            self.length = 0
+        def on_length_changed(self, value):
+            self.lengthChanged.emit(value)
 
-        def play(self, mrl=None):
-            if mrl:
-                if self.media:
-                    self.player.stop()
-                    self.media.release()
-                self.media = self.instance.media_new(mrl)
-                self.player.set_media(self.media)
-                self.player.play()
-                self.length = 0
-            else:
-                self.player.pause() # toggle pause
+        def on_position_changed(self, value):
+            self.positionChanged.emit(value)
 
-        def seek(self, value=0):
-            self.player.set_position(value/100)
-            self.positionChanged.emit(value/100)
-
-        def volume(self):
-            return self.player.audio_get_volume()
-
-        def set_volume(self, value):
-            self.player.audio_set_volume(value)
-
-        def on_length_changed(self, *args, **kwargs):
-            length = max(self.media.get_duration(), 0)
-            if abs(self.length - length) < 500:
-                self.length = length
-            else:
-                self.length = length
-                self.lengthChanged.emit(length)
-
-        def on_position_changed(self, *args, **kwargs):
-            self.positionChanged.emit(self.player.get_position())
-
-        def on_end_reached(self, *args, **kwargs):
+        def on_end_reached(self):
             self.endReached.emit()
 
-        def on_volume_changed(self, *args, **kwargs):
-            self.volumeChanged.emit(self.player.audio_get_volume())
+        def on_audio_volume(self, value):
+            self.volumeChanged.emit(value)

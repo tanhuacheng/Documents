@@ -7,9 +7,8 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 
 icones_dir = os.path.join(base_dir, 'icones')
 icones_dir_music = os.path.join(icones_dir, 'music')
-
-config_dir = os.path.join(base_dir, 'config')
-config_dir_music = os.path.join(config_dir, 'music')
+cache_dir = os.path.join(base_dir, '.cache')
+cache_dir_music = os.path.join(cache_dir, 'music')
 
 main_config = {
     'app-name': 'liveSEC',
@@ -65,17 +64,12 @@ main_config = {
 
     'container': {
         'music': {
-            'music-account': {
-                'netease-config-dir': os.path.join(config_dir_music, 'netease'),
+            'musics': {
+                'cache-dir': os.path.join(cache_dir_music, 'musics'),
             },
 
             'tree-song-list': {
                 'column-width': (200, -1),
-            },
-
-            'lyric': {
-                'background-color': (0, 43, 59, 64),
-                'font-pixel-size': 28,
             },
 
             'control-bar': {
