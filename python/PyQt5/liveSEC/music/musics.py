@@ -8,7 +8,7 @@ from functools import reduce
 from . import douban
 
 
-class Music:
+class Musics:
 
     def __init__(self, dir_):
         def _mkdir(dir_):

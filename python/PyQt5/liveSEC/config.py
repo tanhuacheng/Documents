@@ -69,7 +69,7 @@ main_config = {
             },
 
             'tree-song-list': {
-                'column-width': (200, -1),
+                'column-width': (200, 200, -1),
             },
 
             'control-bar': {

@@ -1,8 +1,8 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from .musics.music import Music
-from .mediaplayer.mediaplayer import MediaPlayer
+from .musics import Musics
+from .mediaplayer import MediaPlayer
 
 
 class QMusic(QtWidgets.QWidget):
@@ -23,7 +23,7 @@ class QMusic(QtWidgets.QWidget):
 
         self.setLayout(self.layout2)
 
-        self.songs = Music(config['musics']['cache-dir'])
+        self.songs = Musics(config['musics']['cache-dir'])
         self.songs.update() # this would take a while
 
         songs = list(self.songs.fetchall())
@@ -31,13 +31,13 @@ class QMusic(QtWidgets.QWidget):
             root = QtWidgets.QTreeWidgetItem(self.tree_song_list, [str(label)])
             root.playlist = list(filter(lambda x: label in x[-1], songs))
             for song in root.playlist:
-                item = QtWidgets.QTreeWidgetItem(root, song[0:2])
+                item = QtWidgets.QTreeWidgetItem(root, song[0:3])
                 item.music = song
 
         root = QtWidgets.QTreeWidgetItem(self.tree_song_list, ['Others'])
         root.playlist = list(filter(lambda x: not x[-1], songs))
         for song in root.playlist:
-            item = QtWidgets.QTreeWidgetItem(root, song[0:2])
+            item = QtWidgets.QTreeWidgetItem(root, song[0:3])
             item.music = song
 
         self.media_player = self.QMediaPlayer()
