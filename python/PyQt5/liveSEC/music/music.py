@@ -24,7 +24,7 @@ class QMusic(QtWidgets.QWidget):
         self.setLayout(self.layout2)
 
         self.songs = Musics(config['musics']['cache-dir'])
-        self.songs.update() # this would take a while
+        # self.songs.update() # this would take a while
 
         songs = list(self.songs.fetchall())
         for label in self.songs.get_labels():

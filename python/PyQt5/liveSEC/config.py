@@ -59,6 +59,15 @@ main_config = {
                     'active': os.path.join(icones_dir, 'nav_music_active.png'),
                 },
             },
+            {
+                'id': 'weather',
+                'text': 'Weather',
+                'font-pixel-size': 18,
+                'icones': {
+                    'normal': os.path.join(icones_dir, 'nav_weather_normal.png'),
+                    'active': os.path.join(icones_dir, 'nav_weather_active.png'),
+                },
+            },
         ),
     },
 
@@ -251,6 +260,9 @@ main_config = {
                     ),
                 },
             },
+        },
+
+        'weather': {
         },
     },
 

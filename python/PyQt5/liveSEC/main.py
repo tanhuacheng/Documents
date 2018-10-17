@@ -4,6 +4,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from navigation import QNavigation
 from music.music import QMusic
+from weather.weather import QWeather
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -35,13 +36,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hlayout.setContentsMargins(0, 0, 0, 0)
 
         self.navigation = QNavigation(config['navigation'])
-        self.navigation.set_current_item('music')
+        self.navigation.set_current_item('weather')
         self.hlayout.addWidget(self.navigation, config['h-stretch-navigation'])
 
         self.container = QtWidgets.QStackedWidget()
         self.container_music = QMusic(config['container']['music'])
+        self.container_weather = QWeather(config['container']['weather'])
         self.container.addWidget(self.container_music)
-        self.container.setCurrentWidget(self.container_music)
+        self.container.addWidget(self.container_weather)
+        self.container.setCurrentWidget(self.container_weather)
 
         self.navigation.callback_current_item_changed = self.on_navigation_current_item_changed
 
@@ -62,6 +65,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_navigation_current_item_changed(self, obj, item_id):
         if item_id == 'music':
             self.container.setCurrentWidget(self.container_music)
+        elif item_id == 'weather':
+            self.container.setCurrentWidget(self.container_weather)
 
     def on_navigation_folder_clicked(self):
         if self.navigation_folder.folded:
