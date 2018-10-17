@@ -1,49 +1,40 @@
 # -*- coding:utf-8
 
 from PyQt5 import QtWidgets, QtCore
-from .accuweather import AccuWeather
 
 
-class QWeather(QtWidgets.QWidget):
+class QAddCities(QtWidgets.QWidget):
 
-    def __init__(self, config):
+    def __init__(self):
         super().__init__()
-        self.config = config
 
+        # city input
+        self.input = QtWidgets.QLineEdit()
+        self.input.setPlaceholderText('city')
+
+        self.input_hlayout = QtWidgets.QHBoxLayout()
+        self.input_hlayout.addStretch(1)
+        self.input_hlayout.addWidget(self.input, 2)
+        self.input_hlayout.addStretch(1)
+
+        self.input_vlayout = QtWidgets.QVBoxLayout()
+        self.input_vlayout.addStretch()
+        self.input_vlayout.addLayout(self.input_hlayout)
+
+        # main layout
         self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.setSpacing(0)
-        self.main_layout.setContentsMargins(0, 0, 0, 0)
-
-        self.layout_add_city = QtWidgets.QHBoxLayout()
-        self.label_add_city = QtWidgets.QLabel('Add City')
-        self.edit_add_city = QtWidgets.QLineEdit()
-        self.label_add_city.setBuddy(self.edit_add_city)
-        self.layout_add_city.addWidget(self.label_add_city)
-        self.layout_add_city.addWidget(self.edit_add_city)
-
-        self.model = QtCore.QStringListModel(['abc'])
-        self.completer_add_city = QtWidgets.QCompleter()
-        self.completer_add_city.setModel(self.model)
-        self.edit_add_city.setCompleter(self.completer_add_city)
-
-        self.main_layout.addLayout(self.layout_add_city)
+        self.main_layout.addLayout(self.input_vlayout, 382)
+        self.main_layout.addStretch(618)
 
         self.setLayout(self.main_layout)
 
-        self.edit_add_city.editingFinished.connect(self.edit_add_city_text_finished)
 
-        self.weather = AccuWeather()
+class QWeather(QtWidgets.QTabWidget):
 
-    def edit_add_city_text_finished(self):
-        text = self.edit_add_city.text()
-        print(text)
-        if text:
-            citys = self.weather.locations_search(text)
-            if citys and isinstance(citys, list):
-                stringlist = []
-                for city in citys:
-                    stringlist.append(city['LocalizedName'] + ',' +
-                                      city['Country']['LocalizedName'] + ',' +
-                                      city['AdministrativeArea']['LocalizedName'])
-                if stringlist:
-                    self.model.setStringList(stringlist)
+    def __init__(self, config):
+        super().__init__()
+
+        self.config = config
+
+        self.home = QAddCities()
+        self.addTab(self.home, '+')
