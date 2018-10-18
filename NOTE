@@ -1,3 +1,9 @@
+PyQt5 应用不能输入中文:
+    sudo apt install fcitx-libs-qt5
+    sudo cp \
+    /usr/lib/x86_64-linux-gnu/qt5/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so \
+    /usr/local/lib/python3.5/dist-packages/PyQt5/Qt/plugins/platforminputcontexts/
+
 bat: A cat(1) clone with wings
 
 Ubuntu 16.04 LTS 点击图标最小化:
