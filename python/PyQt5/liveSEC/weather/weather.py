@@ -17,12 +17,17 @@ class QAddCities(QtWidgets.QWidget):
         # input layout
         self.input = QtWidgets.QLineEdit()
         self.input.setPlaceholderText('search cities here')
-        self.input.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         self.input_hlayout = QtWidgets.QHBoxLayout()
         self.input_hlayout.addStretch(1)
         self.input_hlayout.addWidget(self.input, 1)
         self.input_hlayout.addStretch(1)
+
+        # input completer
+        self.input_completer = QtWidgets.QCompleter()
+        self.input_completer_model = QtCore.QStringListModel()
+        self.input_completer.setModel(self.input_completer_model)
+        self.input.setCompleter(self.input_completer)
 
         # main layout
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -32,17 +37,12 @@ class QAddCities(QtWidgets.QWidget):
 
         self.setLayout(self.main_layout)
 
-        # input completer
-        self.input_completer = QtWidgets.QCompleter()
-        self.input_completer_model = QtCore.QStringListModel()
-        self.input_completer.setModel(self.input_completer_model)
-        self.input.setCompleter(self.input_completer)
-
         # signals
         self.input.textEdited.connect(self.input_text_edited)
         self.input.returnPressed.connect(self.input_return_pressed)
+
+        self.input_completer.highlighted.connect(self.input_completer_highlighted)
         self.input_completer.activated[QtCore.QModelIndex].connect(self.input_completer_activated)
-        self.input_completer.highlighted.connect(self.highlighted)
 
         # variables
         try:
@@ -53,14 +53,11 @@ class QAddCities(QtWidgets.QWidget):
 
         self.key = ''
 
-    def highlighted(self, text):
-        print(text)
-
     def showEvent(self, event):
         self.input.setFocus()
 
     def input_text_edited(self, text):
-        self.input.setFocus()
+        pass
 
     def input_return_pressed(self):
         text = self.input.text()
@@ -89,6 +86,9 @@ class QAddCities(QtWidgets.QWidget):
 
             self.key = text
             self.input_completer_model.setStringList(map(lambda x: x[0], self.history[text]))
+
+    def input_completer_highlighted(self, text):
+        print(text)
 
     def input_completer_activated(self, index):
         # TODO handle result, selected index is index.row()
