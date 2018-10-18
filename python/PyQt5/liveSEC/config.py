@@ -9,6 +9,19 @@ icones_dir = os.path.join(base_dir, 'icones')
 icones_dir_music = os.path.join(icones_dir, 'music')
 cache_dir = os.path.join(base_dir, '.cache')
 cache_dir_music = os.path.join(cache_dir, 'music')
+cache_dir_weather = os.path.join(cache_dir, 'weather')
+
+def _mkdir(dir_):
+    try:
+        os.mkdir(dir_)
+    except FileExistsError:
+        pass
+    except:
+        raise
+
+_mkdir(cache_dir)
+_mkdir(cache_dir_music)
+_mkdir(cache_dir_weather)
 
 main_config = {
     'app-name': 'liveSEC',
@@ -263,6 +276,9 @@ main_config = {
         },
 
         'weather': {
+            'locations': {
+                'history': os.path.join(cache_dir_weather, 'history')
+            },
         },
     },
 

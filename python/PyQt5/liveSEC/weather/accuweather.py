@@ -13,17 +13,41 @@ API_DAILY_FORCAST       = 'http://dataservice.accuweather.com/forecasts/v1/daily
 
 class AccuWeather:
 
+    def _get(self, url, params=None):
+        try:
+            req = requests.get(url, params=params, timeout=32)
+            if req.status_code == requests.codes.ok:
+                return req.json()
+        except:
+            pass
+
+        return None
+
     def locations_search(self, key, language='zh-cn'):
+        ''' result example
+            [{
+                "Version": 1,
+                "Key": "2332730",
+                "Type": "City",
+                "Rank": 35,
+                "LocalizedName": "普安县",
+                "Country": {
+                "ID": "CN",
+                "LocalizedName": "中国"
+                },
+                "AdministrativeArea": {
+                "ID": "GZ",
+                "LocalizedName": "贵州省"
+                }
+            }]
+        '''
         payload = {
             'apikey': API_KEY,
             'language': language,
             'q': key
         }
 
-        try:
-            return requests.get(API_LOCATIONS_SEARCH, params=payload, timeout=32).json()
-        except:
-            return None
+        return self._get(API_LOCATIONS_SEARCH, params=payload)
 
     def current_conditions(self, location_key, language='zh-cn', details=False):
         payload = {
@@ -32,11 +56,7 @@ class AccuWeather:
             'details': details,
         }
 
-        try:
-            url = API_CURRENT_CONDITIONS + location_key
-            return requests.get(url, params=payload, timeout=32).json()
-        except:
-            return None
+        return self._get(API_CURRENT_CONDITIONS + location_key, params=payload)
 
     def daily_forcast(self, location_key, language='zh-cn', details=False, metric=False):
         payload = {
@@ -46,8 +66,4 @@ class AccuWeather:
             'metric': metric,
         }
 
-        try:
-            url = API_DAILY_FORCAST + location_key
-            return requests.get(url, params=payload, timeout=32).json()
-        except:
-            return None
+        return self._get(API_DAILY_FORCAST + location_key, params=payload)
