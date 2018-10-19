@@ -29,6 +29,8 @@ class QAddCities(QtWidgets.QWidget):
         self.input_completer.setModel(self.input_completer_model)
         self.input.setCompleter(self.input_completer)
 
+        self.list = QtWidgets.QListView()
+
         # main layout
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.addStretch(382)

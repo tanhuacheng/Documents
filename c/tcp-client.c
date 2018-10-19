@@ -33,7 +33,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    char buff[] = "abcdefghijklmnopqrstuvwxyz1234567890";
+    char buff[9+4] = {
+        0x00, 0x00, 0x00, 0x00, 0xf0, 0xf0, 0x75, 0x03, 0x00, 0x51, 0x00, 0x01, 0x0a
+    };
+
+    *(uint32_t*)buff = htonl(9);
 
     while (1) {
         ssize_t r;
@@ -45,8 +49,8 @@ int main(int argc, char *argv[])
         }
 
         char temp[128] = "";
-        r = recv(fd, temp, sizeof(temp), MSG_DONTWAIT);
-        printf("recv(%ld):%.*s\n", r, (int)sizeof(temp), temp);
+        r = recv(fd, temp, sizeof(temp), 0);
+        printf("recv %ld\n", r);
         if (r < 0) {
             perror("recv");
         }
@@ -55,6 +59,10 @@ int main(int argc, char *argv[])
             close(fd);
             break;
         }
+        for (int i = 0; i < r; i++) {
+            printf("%02x ", temp[i]);
+        }
+        printf("\n");
         getchar();
     }
 
