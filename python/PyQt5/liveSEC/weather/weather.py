@@ -15,18 +15,16 @@ class QLineEdit(QtWidgets.QLineEdit):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        if obj == self:
-            if event.type() == QtCore.QEvent.KeyPress:
-                if event.key() == QtCore.Qt.Key_Up:
-                    self.upPressed.emit()
-                    return True
-                if event.key() == QtCore.Qt.Key_Down:
-                    self.downPressed.emit()
-                    return True
+        if obj == self and event.type() == QtCore.QEvent.KeyPress:
+            if event.key() == QtCore.Qt.Key_Up:
+                self.upPressed.emit()
+                return True
+            if event.key() == QtCore.Qt.Key_Down:
+                self.downPressed.emit()
+                return True
 
         return super().eventFilter(obj, event)
 
@@ -37,20 +35,18 @@ class QTreeWidget(QtWidgets.QTreeWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        if obj == self:
-            if event.type() == QtCore.QEvent.KeyPress:
-                if event.key() == QtCore.Qt.Key_Escape:
-                    self.escPressed.emit()
-                    return True
+        if obj == self and event.type() == QtCore.QEvent.KeyPress:
+            if event.key() == QtCore.Qt.Key_Escape:
+                self.escPressed.emit()
+                return True
 
         return super().eventFilter(obj, event)
 
 
-class QAddCities(QtWidgets.QWidget):
+class QLocations(QtWidgets.QWidget):
 
     commit = QtCore.pyqtSignal(list)
 
@@ -117,32 +113,31 @@ class QAddCities(QtWidgets.QWidget):
         self.tree.itemActivated.connect(self.tree_item_activated)
         self.tree.escPressed.connect(self.tree_esc_pressed)
 
-    def tree_show_locations(self, locations, text):
-        locations = [x for x in locations if re.search('.*'.join(text), ''.join(x[:-1]))]
-        if locations:
-            self.tree.addTopLevelItems([QtWidgets.QTreeWidgetItem(x) for x in locations])
+    def show_tree(self, locations, text):
+        locations_matched = [x for x in locations if re.search('.*'.join(text), ''.join(x[:-1]))]
+        if locations_matched:
+            self.tree.addTopLevelItems([QtWidgets.QTreeWidgetItem(x) for x in locations_matched])
             self.tree.show()
             return True
 
         return False
 
     def search_locations(self, text):
-        cities = self.weatherapi.locations_search(text)
+        locations_search = self.weatherapi.search_locations(text)
         locations = []
-        for city in cities:
-            if [x for x in self.locations if x[-1] == city['Key']]:
+        for location in locations_search:
+            if [x for x in self.locations if x[-1] == location['Key']]:
                 continue
-            locations.append((city['LocalizedName'],
-                              city['Country']['LocalizedName'],
-                              city['AdministrativeArea']['LocalizedName'],
-                              city['Key']))
+            locations.append((location['LocalizedName'],
+                              location['Country']['LocalizedName'],
+                              location['AdministrativeArea']['LocalizedName'],
+                              location['Key']))
 
         if locations:
             self.locations += locations
             with open(self.config['locations'], 'w') as fp:
                 json.dump(self.locations, fp)
-
-            self.tree_show_locations(locations, text)
+            self.show_tree(locations, text)
 
     def update_searches(self, text):
         if text in self.searches:
@@ -163,10 +158,8 @@ class QAddCities(QtWidgets.QWidget):
 
         if not text:
             return
-
-        if self.tree_show_locations(self.locations, text):
+        if self.show_tree(self.locations, text):
             return
-
         if not self.update_searches(text):
             return
 
@@ -186,7 +179,6 @@ class QAddCities(QtWidgets.QWidget):
     def input_up_down_pressed(self, selector):
         if self.tree.topLevelItemCount():
             self.tree.setFocus()
-
             if not self.tree.selectedItems():
                 item = self.tree.currentItem()
             else:
@@ -221,7 +213,7 @@ class QWeather(QtWidgets.QTabWidget):
         self.config = config
         self.weatherapi = AccuWeather()
 
-        self.home = QAddCities(self.config['locations'], self.weatherapi)
+        self.home = QLocations(self.config['locations'], self.weatherapi)
         self.home.mKey = 0
         self.addTab(self.home, '+')
 

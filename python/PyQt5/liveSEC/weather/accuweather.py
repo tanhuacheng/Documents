@@ -21,9 +21,9 @@ class AccuWeather:
         except:
             pass
 
-        return None
+        return []
 
-    def locations_search(self, key, language='zh-cn'):
+    def search_locations(self, key, language='zh-cn'):
         ''' result example
             [{
                 "Version": 1,
