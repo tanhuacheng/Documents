@@ -239,12 +239,17 @@ class QWeather(QtWidgets.QTabWidget):
         self.setCurrentIndex(current)
 
         self.home.commit.connect(self.commit_location)
+        self.currentChanged.connect(self.current_changed)
 
     def add_city(self, city):
         tab = QCity(self.config['city'], self.weatherapi, city)
         self.settings['current'] = self.count() - 1
         self.insertTab(self.settings['current'], tab, city['location'][0])
         self.setCurrentIndex(self.settings['current'])
+
+    def update_settings(self):
+        with open(self.config['settings'], 'w') as fp:
+            json.dump(self.settings, fp)
 
     def commit_location(self, location):
         for i, city in enumerate(self.settings['cities']):
@@ -257,5 +262,9 @@ class QWeather(QtWidgets.QTabWidget):
             self.settings['cities'].append(city)
             self.add_city(city)
 
-        with open(self.config['settings'], 'w') as fp:
-            json.dump(self.settings, fp)
+        self.update_settings()
+
+    def current_changed(self, index):
+        if self.settings['current'] != index:
+            self.settings['current'] = index
+            self.update_settings()
