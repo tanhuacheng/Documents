@@ -240,6 +240,7 @@ class QWeather(QtWidgets.QTabWidget):
 
         self.home.commit.connect(self.commit_location)
         self.currentChanged.connect(self.current_changed)
+        self.tabBarDoubleClicked.connect(self.tab_bar_double_clicked)
 
     def add_city(self, city):
         tab = QCity(self.config['city'], self.weatherapi, city)
@@ -268,3 +269,11 @@ class QWeather(QtWidgets.QTabWidget):
         if self.settings['current'] != index:
             self.settings['current'] = index
             self.update_settings()
+
+    def tab_bar_double_clicked(self, index):
+        if index == self.count() - 1:
+            return
+
+        self.removeTab(index)
+        del self.settings['cities'][index]
+        self.update_settings()
