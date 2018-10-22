@@ -50,6 +50,34 @@ class AccuWeather:
         return self._get(API_LOCATIONS_SEARCH, params=payload)
 
     def current_conditions(self, location_key, language='zh-cn', details=False):
+        ''' result example truncated version
+            [{
+                'WeatherIcon': 12,
+                'LocalObservationDateTime': '2018-10-23T00:17:00+08:00',
+                'WeatherText': '阵雨',
+                'MobileLink': 'http://m.accuweather.com/zh/cn/puan-county/2332730/current-weather/2332730?lang=zh-cn',
+                'LocalSource': {
+                    'Id': 7,
+                    'Name': '华风',
+                    'WeatherCode': '03'
+                },
+                'Link': 'http://www.accuweather.com/zh/cn/puan-county/2332730/current-weather/2332730?lang=zh-cn',
+                'Temperature': {
+                    'Metric': {
+                        'Unit': 'C',
+                        'UnitType': 17,
+                        'Value': 10.3
+                    },
+                    'Imperial': {
+                        'Unit': 'F',
+                        'UnitType': 18,
+                        'Value': 51.0
+                    }
+                },
+                'EpochTime': 1540225020,
+                'IsDayTime': False
+            }]
+        '''
         payload = {
             'apikey': API_KEY,
             'language': language,

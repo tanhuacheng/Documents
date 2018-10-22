@@ -214,6 +214,9 @@ class QCity(QtWidgets.QWidget):
         self.weatherapi = weatherapi
         self.city = city
 
+        # TODO should work in a thread
+        #  self.current_conditions = self.weatherapi.current_conditions(self.city['location'][-1])
+
 
 class QWeather(QtWidgets.QTabWidget):
 
