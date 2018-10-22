@@ -280,6 +280,9 @@ main_config = {
                 'locations': os.path.join(cache_dir_weather, 'locations'),
                 'searches': os.path.join(cache_dir_weather, 'searches'),
             },
+            'settings': os.path.join(cache_dir_weather, 'settings'),
+            'city': {
+            },
         },
     },
 

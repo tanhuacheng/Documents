@@ -205,6 +205,16 @@ class QLocations(QtWidgets.QWidget):
         self.input.setFocus()
 
 
+class QCity(QtWidgets.QWidget):
+
+    def __init__(self, config, weatherapi, city):
+        super().__init__()
+
+        self.config = config
+        self.weatherapi = weatherapi
+        self.city = city
+
+
 class QWeather(QtWidgets.QTabWidget):
 
     def __init__(self, config):
@@ -214,22 +224,38 @@ class QWeather(QtWidgets.QTabWidget):
         self.weatherapi = AccuWeather()
 
         self.home = QLocations(self.config['locations'], self.weatherapi)
-        self.home.mKey = 0
         self.addTab(self.home, '+')
 
-        # TODO: load from db
+        try:
+            with open(self.config['settings'], 'r') as fp:
+                self.settings = json.load(fp)
+        except:
+            self.settings = {'current': 0, 'cities': []}
 
-        self.home.commit.connect(self.add_city_commit)
+        current = self.settings['current']
+        for city in self.settings['cities']:
+            self.add_city(city)
+        self.settings['current'] = current
+        self.setCurrentIndex(current)
 
-    def add_city_commit(self, location):
-        for i in range(self.count()):
-            if int(location[-1]) == self.widget(i).mKey:
+        self.home.commit.connect(self.commit_location)
+
+    def add_city(self, city):
+        tab = QCity(self.config['city'], self.weatherapi, city)
+        self.settings['current'] = self.count() - 1
+        self.insertTab(self.settings['current'], tab, city['location'][0])
+        self.setCurrentIndex(self.settings['current'])
+
+    def commit_location(self, location):
+        for i, city in enumerate(self.settings['cities']):
+            if location[-1] == city['location'][-1]:
+                self.settings['current'] = i
                 self.setCurrentIndex(i)
                 break
         else:
-            tab = QtWidgets.QLabel(','.join(location[:-1])) # test
-            tab.mKey = int(location[-1])
-            self.insertTab(self.count() - 1, tab, location[0])
-            self.setCurrentWidget(tab)
+            city = {'location': location}
+            self.settings['cities'].append(city)
+            self.add_city(city)
 
-            # TODO: write to db
+        with open(self.config['settings'], 'w') as fp:
+            json.dump(self.settings, fp)
