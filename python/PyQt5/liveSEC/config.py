@@ -277,7 +277,8 @@ main_config = {
 
         'weather': {
             'locations': {
-                'history': os.path.join(cache_dir_weather, 'history')
+                'locations': os.path.join(cache_dir_weather, 'locations'),
+                'searches': os.path.join(cache_dir_weather, 'searches'),
             },
         },
     },

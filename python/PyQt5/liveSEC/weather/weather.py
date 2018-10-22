@@ -1,100 +1,216 @@
 # -*- coding:utf-8
 
-from PyQt5 import QtWidgets, QtCore
+import re
 import json
+
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from .accuweather import AccuWeather
 
 
+class QLineEdit(QtWidgets.QLineEdit):
+
+    upPressed = QtCore.pyqtSignal()
+    downPressed = QtCore.pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if obj == self:
+            if event.type() == QtCore.QEvent.KeyPress:
+                if event.key() == QtCore.Qt.Key_Up:
+                    self.upPressed.emit()
+                    return True
+                if event.key() == QtCore.Qt.Key_Down:
+                    self.downPressed.emit()
+                    return True
+
+        return super().eventFilter(obj, event)
+
+
+class QTreeWidget(QtWidgets.QTreeWidget):
+
+    escPressed = QtCore.pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if obj == self:
+            if event.type() == QtCore.QEvent.KeyPress:
+                if event.key() == QtCore.Qt.Key_Escape:
+                    self.escPressed.emit()
+                    return True
+
+        return super().eventFilter(obj, event)
+
+
 class QAddCities(QtWidgets.QWidget):
 
-    def __init__(self, config, api_weather):
+    commit = QtCore.pyqtSignal(list)
+
+    def __init__(self, config, weatherapi):
         super().__init__()
 
         self.config = config
-        self.api_weather = api_weather
+        self.weatherapi = weatherapi
 
         # input layout
-        self.input = QtWidgets.QLineEdit()
-        self.input.setPlaceholderText('search cities here')
+        self.input = QLineEdit()
+        self.input.setPlaceholderText('搜索城市')
+        self.input.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp('\w*')))
 
         self.input_hlayout = QtWidgets.QHBoxLayout()
         self.input_hlayout.addStretch(1)
         self.input_hlayout.addWidget(self.input, 1)
         self.input_hlayout.addStretch(1)
 
-        # input completer
-        self.input_completer = QtWidgets.QCompleter()
-        self.input_completer_model = QtCore.QStringListModel()
-        self.input_completer.setModel(self.input_completer_model)
-        self.input.setCompleter(self.input_completer)
+        # tree layout
+        self.tree = QTreeWidget()
+        self.tree.setRootIsDecorated(False)
+        self.tree.setColumnCount(3)
+        self.tree.setHeaderLabels(['地区', '国家', '行政区'])
+        self.tree.hide()
 
-        self.list = QtWidgets.QListView()
+        self.tree_hlayout = QtWidgets.QHBoxLayout()
+        self.tree_hlayout.addStretch(1)
+        self.tree_hlayout.addWidget(self.tree, 1)
+        self.tree_hlayout.addStretch(1)
+
+        self.tree_vlayout = QtWidgets.QVBoxLayout()
+        self.tree_vlayout.addLayout(self.tree_hlayout)
+        self.tree_vlayout.addStretch()
 
         # main layout
         self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.setSpacing(0)
         self.main_layout.addStretch(382)
         self.main_layout.addLayout(self.input_hlayout)
-        self.main_layout.addStretch(618)
+        self.main_layout.addLayout(self.tree_vlayout, 618)
 
         self.setLayout(self.main_layout)
+
+        # variables
+        try:
+            with open(self.config['locations'], 'r') as fp:
+                self.locations = json.load(fp)
+        except:
+            self.locations = []
+
+        try:
+            with open(self.config['searches'], 'r') as fp:
+                self.searches = set(json.load(fp))
+        except:
+            self.searches = set()
 
         # signals
         self.input.textEdited.connect(self.input_text_edited)
         self.input.returnPressed.connect(self.input_return_pressed)
+        self.input.upPressed.connect(self.input_up_pressed)
+        self.input.downPressed.connect(self.input_down_pressed)
 
-        self.input_completer.highlighted.connect(self.input_completer_highlighted)
-        self.input_completer.activated[QtCore.QModelIndex].connect(self.input_completer_activated)
+        self.tree.itemActivated.connect(self.tree_item_activated)
+        self.tree.escPressed.connect(self.tree_esc_pressed)
 
-        # variables
-        try:
-            with open(self.config['history'], 'r') as fp:
-                self.history = json.load(fp)
-        except:
-            self.history = {}
+    def tree_show_locations(self, locations, text):
+        locations = [x for x in locations if re.search('.*'.join(text), ''.join(x[:-1]))]
+        if locations:
+            self.tree.addTopLevelItems([QtWidgets.QTreeWidgetItem(x) for x in locations])
+            self.tree.show()
+            return True
 
-        self.key = ''
+        return False
+
+    def search_locations(self, text):
+        cities = self.weatherapi.locations_search(text)
+        locations = []
+        for city in cities:
+            if [x for x in self.locations if x[-1] == city['Key']]:
+                continue
+            locations.append((city['LocalizedName'],
+                              city['Country']['LocalizedName'],
+                              city['AdministrativeArea']['LocalizedName'],
+                              city['Key']))
+
+        if locations:
+            self.locations += locations
+            with open(self.config['locations'], 'w') as fp:
+                json.dump(self.locations, fp)
+
+            self.tree_show_locations(locations, text)
+
+    def update_searches(self, text):
+        if text in self.searches:
+            return False
+
+        self.searches.add(text)
+        with open(self.config['searches'], 'w') as fp:
+            json.dump(list(self.searches), fp)
+
+        return True
 
     def showEvent(self, event):
         self.input.setFocus()
 
     def input_text_edited(self, text):
-        pass
+        self.tree.clear()
+        self.tree.hide()
 
-    def input_return_pressed(self):
-        text = self.input.text()
-        print(text)
-
-        text = text.strip()
         if not text:
             return
 
-        if text in self.history:
-            self.key = text
-            self.input_completer_model.setStringList(map(lambda x: x[0], self.history[text]))
+        if self.tree_show_locations(self.locations, text):
             return
 
-        print('search ...')
-        cities = self.api_weather.locations_search(text)
-        if cities:
-            def _convert(city):
-                return ','.join((city['LocalizedName'],
-                                 city['Country']['LocalizedName'],
-                                 city['AdministrativeArea']['LocalizedName'])), city['Key']
+        if not self.update_searches(text):
+            return
 
-            self.history[text] = tuple(map(_convert, cities))
-            with open(self.config['history'], 'w') as fp:
-                json.dump(self.history, fp)
+        self.search_locations(text)
 
-            self.key = text
-            self.input_completer_model.setStringList(map(lambda x: x[0], self.history[text]))
+    def input_return_pressed(self):
+        self.tree.clear()
+        self.tree.hide()
 
-    def input_completer_highlighted(self, text):
-        print(text)
+        text = self.input.text()
+        if not text:
+            return
 
-    def input_completer_activated(self, index):
-        # TODO handle result, selected index is index.row()
-        print('get code', self.history[self.key][index.row()][1])
+        self.update_searches(text)
+        self.search_locations(text)
+
+    def input_up_down_pressed(self, selector):
+        if self.tree.topLevelItemCount():
+            self.tree.setFocus()
+
+            if not self.tree.selectedItems():
+                item = self.tree.currentItem()
+            else:
+                item = selector(self.tree.currentItem())
+                if not item:
+                    item = self.tree.currentItem()
+            self.tree.setCurrentItem(item)
+
+    def input_up_pressed(self):
+        self.input_up_down_pressed(self.tree.itemAbove)
+
+    def input_down_pressed(self):
+        self.input_up_down_pressed(self.tree.itemBelow)
+
+    def tree_item_activated(self, item, column):
+        if item:
+            self.commit.emit([item.text(i) for i in range(item.columnCount())])
+            self.input.clear()
+            self.input.setFocus()
+            self.tree.clear()
+            self.tree.hide()
+
+    def tree_esc_pressed(self):
+        self.input.setFocus()
 
 
 class QWeather(QtWidgets.QTabWidget):
@@ -103,7 +219,25 @@ class QWeather(QtWidgets.QTabWidget):
         super().__init__()
 
         self.config = config
-        self.api_weather = AccuWeather()
+        self.weatherapi = AccuWeather()
 
-        self.home = QAddCities(self.config['locations'], self.api_weather)
+        self.home = QAddCities(self.config['locations'], self.weatherapi)
+        self.home.mKey = 0
         self.addTab(self.home, '+')
+
+        # TODO: load from db
+
+        self.home.commit.connect(self.add_city_commit)
+
+    def add_city_commit(self, location):
+        for i in range(self.count()):
+            if int(location[-1]) == self.widget(i).mKey:
+                self.setCurrentIndex(i)
+                break
+        else:
+            tab = QtWidgets.QLabel(','.join(location[:-1])) # test
+            tab.mKey = int(location[-1])
+            self.insertTab(self.count() - 1, tab, location[0])
+            self.setCurrentWidget(tab)
+
+            # TODO: write to db
