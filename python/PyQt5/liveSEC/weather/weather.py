@@ -214,8 +214,34 @@ class QCity(QtWidgets.QWidget):
         self.weatherapi = weatherapi
         self.city = city
 
+        # header layout
+        self.city_name = QtWidgets.QLabel(city['location'][0])
+        self.city_name.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.observe_time = QtWidgets.QLabel('0分钟前 发布')
+        self.observe_time.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.header_vlayout = QtWidgets.QVBoxLayout()
+        self.header_vlayout.addWidget(self.city_name)
+        self.header_vlayout.addWidget(self.observe_time)
+
+        self.header_hlayout = QtWidgets.QHBoxLayout()
+        self.header_hlayout.addStretch()
+        self.header_hlayout.addLayout(self.header_vlayout)
+        self.header_hlayout.addStretch()
+
+        # main layout
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.setSpacing(0)
+        self.main_layout.addLayout(self.header_hlayout)
+        self.main_layout.addStretch(0)
+
+        self.setLayout(self.main_layout)
+
         # TODO should work in a thread
-        #  self.current_conditions = self.weatherapi.current_conditions(self.city['location'][-1])
+        #  self.current_conditions = \
+        #          self.weatherapi.current_conditions(self.city['location'][-1], details=True)
+        #  print(self.current_conditions)
 
 
 class QWeather(QtWidgets.QTabWidget):
