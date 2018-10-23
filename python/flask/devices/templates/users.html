@@ -18,12 +18,18 @@
         <th>设备</th>
         <th>添加日期</th>
         <th>备注</th>
+        <th>操作</th>
     </tr>
     {% for device in devices %}
     <tr>
         <td>{{ device[0] }}</td>
         <td>{{ device[1] }}</td>
         <td>{{ device[2] }}</td>
+        <td>
+            <form action="/delete" method="post">
+                <input type="submit" value="删除"/>
+            </form>
+        </td>
     </tr>
     {% endfor %}
 </table>

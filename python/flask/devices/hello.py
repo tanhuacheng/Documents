@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, flash
+from flask import Flask, request, render_template, flash, redirect, url_for
 
 from forms import AddDeviceForm
 
@@ -17,7 +17,13 @@ def index():
     if request.method == 'POST' and form.validate():
         print(form.device.data, form.remark.data)
         flash('ok')
+        return redirect(url_for('index'))
 
     return render_template('users.html', title='用户管理', form=form, devices=[('1', '2', '3')])
+
+@app.route('/delete', methods=['POST'])
+def delete():
+    print('delete')
+    return redirect(url_for('index'))
 
 app.run()
